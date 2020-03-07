@@ -11,6 +11,7 @@ class Account(models.Model):
     def __str__(self):
         return f'{self.name}: {self.balance}'
     
+    
 
 class Category(models.Model):
     name = models.CharField(max_length=30, default='Varios')
@@ -39,12 +40,12 @@ class Movement(models.Model):
     currency = models.CharField(max_length=3, default='$')
     account_out = models.ForeignKey(Account,
                                     on_delete = models.PROTECT,
-                                    related_name = 'account_out',
+                                    related_name = 'movements_out',
                                     verbose_name = 'cuenta_de_salida',
                                     default = 1)
     account_in = models.ForeignKey(Account,
                                    on_delete = models.PROTECT,
-                                   related_name = 'account_in',
+                                   related_name = 'movements_in',
                                    verbose_name = 'cuenta_de_entrada',
                                    default = 1)
     category = models.ForeignKey(Category, 

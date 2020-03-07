@@ -1,0 +1,26 @@
+-   VERIFICAR que los movimientos van al campo correcto según el valor de 
+    Movement.direction:
+    
+        Movement.direction = '+' -> Movement.account_in
+        Movement.direction = '-' -> Movement.account_out
+        Movement.direction = '=' -> Movement.account_in y Movement_account.out
+        
+    (Actualmente lo hacen de modo arbitrario. Corregir ese comportamiento.
+    Puede ser que haya que permitir un campo nulo en esa(s) relación(es).
+    Si el movimiento es +, account_out debería ser None o NULL y no una cuenta
+    arbitraria a la que se le suma/resta 0, ya que de esa manera, si bien el
+    resultado de la cuenta no varía, el movimiento queda registrado (con 0) en 
+    Account.movements_out, lo cual no es correcto.
+    En Account.movements_out deberían estar solamente los movimientos de salida
+    (y los de traspaso que implican una salida de la cuenta).
+    
+    Para esto, tengo que hacer que Movement.account_in y Movement.account_out 
+    sean nullable. Pero no ambas a la vez.
+    Si Movement.account_in = NULL, Movement.account_out no puede ser NULL.
+    No sé si tengo que hacer que Account.id sea nullable también.
+    
+    (¿Resolver a nivel de Manager?
+    
+-   REVISAR métodos __str__ y __repr__ de todas las cuenta (son un asco).
+
+-   CONVERTIR los campos FloatField a DecimalField
