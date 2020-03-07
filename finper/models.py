@@ -30,24 +30,24 @@ class Movement(models.Model):
     concept = models.CharField(max_length=20, default='Movimiento')
     detail = models.CharField(max_length=30)
     amount = models.FloatField(default=0.0)
-    direction = models.CharField(max_length = 1,
-                                 choices =  [
-                                     ('+', 'Entrada'),
-                                     ('-', 'Salida'),
-                                     ('=', 'Traspaso')
-                                     ],
-                                 )
+#     direction = models.CharField(max_length = 1,
+#                                  choices =  [
+#                                      ('+', 'Entrada'),
+#                                      ('-', 'Salida'),
+#                                      ('=', 'Traspaso')
+#                                      ],
+#                                  )
     currency = models.CharField(max_length=3, default='$')
     account_out = models.ForeignKey(Account,
                                     on_delete = models.PROTECT,
                                     related_name = 'movements_out',
                                     verbose_name = 'cuenta_de_salida',
-                                    default = 1)
+                                    null = True)
     account_in = models.ForeignKey(Account,
                                    on_delete = models.PROTECT,
                                    related_name = 'movements_in',
                                    verbose_name = 'cuenta_de_entrada',
-                                   default = 1)
+                                   null = True)
     category = models.ForeignKey(Category, 
                                  on_delete = models.PROTECT,
                                  verbose_name = 'categoría_del_movimiento')
@@ -60,14 +60,22 @@ class Movement(models.Model):
         pass
     
     def save(self, *args, **kwargs):
-        if self.direction == '+':
+        if self.account_in is not None:
             self.account_in.balance += self.amount
-        elif self.direction == '-':
+            self.account_in.save()
+        if self.account_out is not None:
             self.account_out.balance -= self.amount
-        elif self.direction == '=':
-            self.account_in.balance += self.amount
-            self.account_out.balance -= self.amount
+            self.account_out.save()
+#         if self.direction == '+':
+#             self.account_in.balance += self.amount
+#             self.account_in.save()
+#         elif self.direction == '-':
+#             self.account_out.balance -= self.amount
+#             self.account_out.save()
+#         elif self.direction == '=':
+#             self.account_in.balance += self.amount
+#             self.account_out.balance -= self.amount
+#             self.account_in.save()
+#             self.account_out.save()
         super(Movement, self).save(*args, **kwargs)
-        self.account_in.save()
-        self.account_out.save()
         
