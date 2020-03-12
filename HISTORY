@@ -1,0 +1,5 @@
+2020-03-09
+- Se corrigión el comportamiento al borrar un movimiento. Ahora, al borrar un movimiento
+  se revierte el efecto en la o las cuentas de entrada y salida
+2020-03-11
+- Se completaron (hasta nuevo aviso) las pruebas de los modelos Account y Movement

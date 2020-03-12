@@ -3,3 +3,6 @@
 db.sqlite3
 *pycache*
 finper/migrations/*
+errors.txt
+stderr.txt
+stdout.txt

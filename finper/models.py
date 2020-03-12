@@ -1,4 +1,5 @@
 from datetime import date
+from decimal import Decimal
 
 from django.db import models
 from django.db.models.signals import post_save
@@ -70,12 +71,38 @@ class Movement(models.Model):
                                  on_delete = models.PROTECT,
                                  verbose_name = 'categoría_del_movimiento')
     
+    keeper = None
+    keepname = None
+    
     class Meta:
         ordering = ['date']
     
     def __str__(self):
         return f'{self.date} - {self.concept}: {self.amount} {self.account_in}'
         pass
+    
+#     def __setattr__(self, attr, value):
+#         
+# #         # Poner el for por afuera e ir agregando elemento tras elemento, a ver si
+# #         # así se arregla
+# #         super(Movement, self).__setattr__(self.field_names, [field.name for field
+# #                                                         in self._meta.concrete_fields]
+# #                                                         if hasattr(self, '_meta') 
+# #                                                         else [])
+#         field_names = [field.name for field in self._meta.concrete_fields] \
+#                         if hasattr(self, '_meta') else []
+#         if attr in field_names and attr not in ('id'):
+#             print('ok')
+# #             super(Movement, self).__setattr__(self.keeper, getattr(self, attr))
+# #            self.keeper = getattr(self, attr)
+#         super(Movement, self).__setattr__(attr, value)
+#          
+# #         if name == 'amount':
+# #             print(name, value)
+#               #super(Movement, self).__setattr__(self.keeper, self.__dict__[name])
+#               #self.keeper = self.__dict__[name]
+# #         #self.keepname = name 
+# #         super(Movement, self).__setattr__(name, value)
     
     def save(self, *args, **kwargs):
         if self.account_in is not None:
@@ -87,4 +114,14 @@ class Movement(models.Model):
             self.account_out.balance -= self.amount
             self.account_out.save()
         super(Movement, self).save(*args, **kwargs)
-        
+    
+    def delete(self, *args, **kwargs):
+        if self.account_in is not None:
+            self.account_in.balance_previous = self.account_in.balance
+            self.account_in.balance -= self.amount
+            self.account_in.save()
+        if self.account_out is not None:
+            self.account_out.balance_previous = self.account_out.balance
+            self.account_out.balance += self.amount
+            self.account_out.save()
+        super(Movement, self).delete(*args, **kwargs)

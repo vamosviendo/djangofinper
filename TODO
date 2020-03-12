@@ -1,26 +1,35 @@
--   VERIFICAR que los movimientos van al campo correcto según el valor de 
-    Movement.direction:
-    
-        Movement.direction = '+' -> Movement.account_in
-        Movement.direction = '-' -> Movement.account_out
-        Movement.direction = '=' -> Movement.account_in y Movement_account.out
-        
-    (Actualmente lo hacen de modo arbitrario. Corregir ese comportamiento.
-    Puede ser que haya que permitir un campo nulo en esa(s) relación(es).
-    Si el movimiento es +, account_out debería ser None o NULL y no una cuenta
-    arbitraria a la que se le suma/resta 0, ya que de esa manera, si bien el
-    resultado de la cuenta no varía, el movimiento queda registrado (con 0) en 
-    Account.movements_out, lo cual no es correcto.
-    En Account.movements_out deberían estar solamente los movimientos de salida
-    (y los de traspaso que implican una salida de la cuenta).
-    
-    Para esto, tengo que hacer que Movement.account_in y Movement.account_out 
-    sean nullable. Pero no ambas a la vez.
-    Si Movement.account_in = NULL, Movement.account_out no puede ser NULL.
-    No sé si tengo que hacer que Account.id sea nullable también.
-    
-    (¿Resolver a nivel de Manager?
-    
--   REVISAR métodos __str__ y __repr__ de todas las cuenta (son un asco).
+-   REVISAR métodos __str__ y __repr__ de todas las cuentas (son un asco).
 
--   CONVERTIR los campos FloatField a DecimalField
+-   Empezar a pensar vistas y formularios de entrada_
+    -   Carga cuenta nueva
+    -   Carga categoría nueva
+    -   Carga movimientos (la que vamos a usar todo el tiempo, así que especial
+        cuidado)
+        
+* finper/tests.py
+    class AccountModelTest(TestCase)
+        def test_balance_against_initial_balance(self):
+        def test_balance_against_initial_balance_random_values(self):
+        
+        Reemplazar bucle for por accin.movements_in.aggregate(Sum('amount')?
+
+* Ver cuál es el comportamiento cuando se elimina o cuando se modifica un movimiento.
+  Al eliminarse, deberían desaparecer de movements_in en Account y "restarse" de
+  Account.balance.
+  Al modificarse el monto, debería modificarse también Account.balance.
+    PROBLEMA:
+    Dado un Movement mov, ya existente
+    cuando se asigna un nuevo valor a mov.amount, al salvarse el movimiento 
+    modificado, debería restarse del saldo de account_in el valor anterior y
+    sumarse el valor actual (o bien, sumar/restar la diferencia entre el valor
+    anterior y el valor después de la asignación).
+    Ahora bien.
+    Una vez hecha la asignación, ¿cómo hago para saber el valor anterior de 
+    mov.amount? 
+    
+    Override = por medio de __setattr__()
+    Para que al asignarse un valor a un campo, se guarde o se devuelva el valor
+    anterior
+    (no sé si tiene sentido esto que estoy diciendo, pero creo que sí)
+    
+    
