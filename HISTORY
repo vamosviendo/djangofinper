@@ -3,3 +3,16 @@
   se revierte el efecto en la o las cuentas de entrada y salida
 2020-03-11
 - Se completaron (hasta nuevo aviso) las pruebas de los modelos Account y Movement
+2020-03-13
+- Se instala django-model-utils 4.0.0 para poder usar FieldTracker() a los efectos de 
+  guardar el valor anterior de un campo antes de salvar.
+  https://github.com/jazzband/django-model-utils
+- Se agrega el atributo tracker=FieldTracker() al modelo Movement para guardar el
+  valor anterior de determinados campos (amount, account_in, account_out) antes de 
+  salvar modificaciones al movimiento.
+- Se cambia el nombre del campo concept por title.
+2020-03-15
+- Se terminan de revisar los tests.
+- Se termina de diseñar el sistema de modificación de movimientos existentes,
+  para que al modificarse un movimiento se corrija el saldo de las cuentas
+  relacionadas.
