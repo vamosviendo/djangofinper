@@ -1,11 +1,25 @@
--   REVISAR métodos __str__ y __repr__ de todas las cuentas (son un asco).
-
--   Empezar a pensar vistas y formularios de entrada_
+-   Empezar a pensar vistas y formularios de entrada
+    -   Implementar listas básicas de movimientos y de cuentas.
     -   Carga cuenta nueva
     -   Carga categoría nueva
     -   Carga movimientos (la que vamos a usar todo el tiempo, así que especial
         cuidado)
-        
-* Estudiar pre_save y post_save          
 
-+ Armar nandotools.py
+-   REVISAR métodos __str__ y __repr__ de todas las cuentas (son un asco).
+
+* Estudiar decorators
+* Estudiar @classmethod decorator
+* Estudiar pre_save y post_save
+
+- Ver si se puede usar @classmethod para Account.reconnect()
+- Ver si se puede implementar Movement.save() en términos de pre_save.connect()
+
+TESTS
+-   index view
+-   movlistview
+-   acclistview
+-   movdetail view
+-   accdetail view
+
+FINAL
+- En djangofinper/settings.py, cambiar DEBUG a False

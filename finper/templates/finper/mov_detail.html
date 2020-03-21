@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <title>Detalle de movimiento</title>
+  </head>
+  <body>
+    <h1>{{ movement.title }}</h1>
+    
+    {% if error_message %}<p><strong>{{ error_message }}</strong></p>{% endif %}
+    
+    <ul>
+      <li>Fecha: {{ movement.date }}</li>
+      <li>Título: {{ movement.title }}</li>
+      <li>Detalle: {{ movement.detail }}</li>
+      <li>Monto: {{ movement.amount }}</li>
+      <li>Cuenta de entrada: {{ movement.account_in.name }}</li>
+      <li>Cuenta de salida: {{ movement.account_out.name }}</li>
+      <li>Categoría del movimiento: {{ movement.category.name }}</li>
+    </ul>
+  </body>
+</html>

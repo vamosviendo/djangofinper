@@ -1,0 +1,18 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <title>Listado de movimientos</title>
+  </head>
+  <body>
+    {% if movements_list %}
+      <ul>
+      {% for mov in movements_list %}
+        <li><a href="{% url 'finper:movdetail' mov.id %}">{{ mov }}</a> </li>
+      {% endfor %}
+      </ul>
+    {% else %}
+      <p>No hay movimientos disponibles</p>
+    {% endif %}
+  </body>
+</html>
