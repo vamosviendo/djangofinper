@@ -136,6 +136,7 @@ class Movement(models.Model):
 
         # Si se está modificando un movimiento ya cargado
         else:
+
             # Si cambia la cuenta de entrada del movimiento
             oldaccountin = self._prevaccount('account_in_id') \
                 if self.tracker.has_changed('account_in_id') \

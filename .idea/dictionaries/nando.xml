@@ -1,3 +1,17 @@
 <component name="ProjectDictionaryState">
-  <dictionary name="nando" />
+  <dictionary name="nando">
+    <words>
+      <w>accdetail</w>
+      <w>acclist</w>
+      <w>accountid</w>
+      <w>categoria</w>
+      <w>finper</w>
+      <w>movdetail</w>
+      <w>movlist</w>
+      <w>movs</w>
+      <w>oldaccountin</w>
+      <w>oldaccountout</w>
+      <w>prevaccount</w>
+    </words>
+  </dictionary>
 </component>
