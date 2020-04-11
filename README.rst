@@ -2,7 +2,4 @@
 Finanzas Personales
 ===================
 
-
-Test git
-Test git 2
-Test git 3
+Aplicación de control de finanzas personales. Pensada sobre todo para mi propio uso. Todavía no funcional.
