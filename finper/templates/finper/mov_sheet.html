@@ -1,0 +1,84 @@
+{% extends 'base.html' %}
+{% block title %}{{ title }}{% endblock title %}
+
+{% block content %}
+    <h1>{{ title }}</h1>
+    {% if movements_list %}
+
+      <h2>Modelo 1:</h2>
+      <table border="1">
+          <tr>
+              <th>Fecha</th>
+              <th>Concepto</th>
+              <th>Detalle</th>
+              <th>Monto</th>
+              <th>Moneda</th>
+              {% for cta in accounts_list %}
+                <th>{{ cta.name }}</th>
+              {% endfor %}
+              <th>TOTAL</th>
+              <th>Categoría</th>
+          </tr>
+          <tr class="saldos">
+              <td></td>
+              <td colspan="4">Saldo inicial</td>
+              {% for cta in accounts_list %}
+                <td class="number">{{ cta.balance_start }}</td>
+              {% endfor %}
+              <td class="number">{{ accounts_start_sum|floatformat:2 }}</td>
+              <td></td>
+          </tr>
+      {% for mov in movements_list %}
+          <tr>
+              <td class="date">{{ mov.date }}</td>
+              <td><a href="{% url 'finper:movdetail' mov.id %}">{{ mov.title }}</a></td>
+              <td>{{ mov.detail }}</td>
+              <td class="number">{{ mov.amount }}</td>
+              <td>{{ mov.currency }}</td>
+              {% for cta in accounts_list %}
+                <td class="number">
+                    {% if mov.account_in == cta %}
+                        {{ mov.amount }}
+                    {% endif %}
+                    {% if mov.account_out == cta %}
+                        <font color="red">
+                            -{{ mov.amount }}
+                        </font>
+                    {% endif %}
+                </td>
+              {% endfor %}
+              <td class="number">
+                  {% if not mov.account_out %}
+                    {{ mov.amount }}
+                  {% else %}
+                    {% if not mov.account_in %}
+                        <font color="red">
+                            -{{ mov.amount }}
+                        </font>
+                    {% endif %}
+                  {% endif %}
+              </td>
+              <td>{{ mov.category }}</td>
+          </tr>
+      {% endfor %}
+          <tr class="saldos">
+              <td></td>
+              <td colspan="4">Saldo final</td>
+              {% for cta in accounts_list %}
+                <td class="number">
+                    <a href="{% url 'finper:chk_bal' cta.id %}" title="verificar saldo">
+                        {{ cta.balance }}
+                    </a>
+                </td>
+              {% endfor %}
+              <td class="number">{{ accounts_sum|floatformat:2 }}</td>
+              <td></td>
+          </tr>
+      </table>
+    {% else %}
+      <p>No hay movimientos disponibles</p>
+    {% endif %}
+    <br>
+    <a href="{% url 'finper:index' %}">Index</a><br>
+    <a href="{% url 'finper:add_movement' %}">Movimiento nuevo</a><br>
+{% endblock content %}

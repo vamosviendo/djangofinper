@@ -1,18 +1,36 @@
- <!DOCTYPE html>
-<html>
-  <head>
-    <meta charset="utf-8">
-    <title>Listado de movimientos</title>
-  </head>
-  <body>
+{% extends 'base.html' %}
+{% block title %}{{ title }}{% endblock title %}
+
+{% block content %}
+    <h1>{{ title }}</h1>
     {% if movements_list %}
-      <ul>
+      <table>
+          <tr>
+              <th>Fecha</th>
+              <th>Concepto</th>
+              <th>Detalle</th>
+              <th>Monto</th>
+              <th>Moneda</th>
+              <th>Cta. de entrada</th>
+              <th>Cta. de salida</th>
+              <th>Categoría</th>
+          </tr>
       {% for mov in movements_list %}
-        <li><a href="{% url 'finper:movdetail' mov.id %}">{{ mov }}</a> </li>
+          <tr>
+              <td>{{ mov.date }}</td>
+              <td><a href="{% url 'finper:movdetail' mov.id %}">{{ mov.title }}</a></td>
+              <td>{{ mov.detail }}</td>
+              <td>{{ mov.amount }}</td>
+              <td>{{ mov.currency }}</td>
+              <td>{{ mov.account_in.name }}</td>
+              <td>{{ mov.account_out.name }}</td>
+              <td>{{ mov.category }}</td>
+          </tr>
       {% endfor %}
-      </ul>
+      </table>
     {% else %}
       <p>No hay movimientos disponibles</p>
     {% endif %}
-  </body>
-</html>
+    <br><br>
+    <a href="{% url 'finper:index' %}">Index</a>
+{% endblock content %}

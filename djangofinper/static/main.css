@@ -1,0 +1,33 @@
+body {
+    font-family: Verdana, Geneva, Sans-Serif
+}
+
+table, td, th {
+    border-collapse: collapse;
+}
+
+th {
+    background-color: lightgreen;
+    padding-left: 2px;
+    padding-right: 2px;
+    font-size: 12pt;
+}
+
+tr.saldos {
+    font-weight: bold;
+}
+
+td {
+    font-size: 10pt;
+    padding: 3px;
+}
+
+td.number {
+    font-family: "Lucida Console", Monaco, monospace;
+    font-size: 9pt;
+    text-align: right;
+}
+
+td.date {
+    text-align: right;
+}

@@ -19,8 +19,11 @@ from django.utils import timezone
 from .models import Movement, Account, Category
 
 
-def create_account(nombre, saldo_inicial):
-    return Account.objects.create(name=nombre, balance_start=saldo_inicial)
+def create_account(cod, nombre, saldo_inicial):
+    return Account.objects.create(
+        codename=cod,
+        name=nombre, 
+        balance_start=saldo_inicial)
 
 
 def create_category():
@@ -46,7 +49,7 @@ class MovementModelTest(TestCase):
         """ Acción:     Se crea un movimiento de salida
             Chequear:   El monto del movimiento debe restarse del saldo de
                         la cuenta de salida"""
-        acc = create_account(nombre='Account', saldo_inicial=5000)
+        acc = create_account(cod='act', nombre='Account', saldo_inicial=5000)
         saldo = acc.balance
         mov = create_movement(cuenta_out=acc,
                               monto=500)
@@ -56,7 +59,7 @@ class MovementModelTest(TestCase):
         """ Acción:     Se crea un movimiento de entrada
             Chequear:   El monto del movimiento debe sumarse al saldo de
                         la cuenta de entrada"""
-        acc = create_account(nombre='Account', saldo_inicial=1200)
+        acc = create_account(cod='act', nombre='Account', saldo_inicial=1200)
         saldo = acc.balance
         mov = create_movement(cuenta_in=acc,
                               monto=600)
@@ -67,8 +70,8 @@ class MovementModelTest(TestCase):
             Chequear:   El monto del movimiento debe restarse del saldo de
                         la cuenta de salida y sumarse al saldo de la cuenta 
                         de entrada"""
-        accin = create_account(nombre='Cuenta1', saldo_inicial=2000)
-        accout = create_account(nombre='Cuenta2', saldo_inicial=4500)
+        accin = create_account(cod='ai', nombre='Cuenta1', saldo_inicial=2000)
+        accout = create_account(cod='ao', nombre='Cuenta2', saldo_inicial=4500)
         balin = accin.balance
         balout = accout.balance
         mov = create_movement(cuenta_in=accin,
@@ -83,7 +86,7 @@ class MovementModelTest(TestCase):
         """ Acción:     Se crea un movimiento de entrada
             Chequear:   No se genera ningún contenido en la cuenta de salida del
                         movimiento"""
-        accin = create_account(nombre='Cuenta', saldo_inicial=4500)
+        accin = create_account(cod='act', nombre='Cuenta', saldo_inicial=4500)
         mov = create_movement(cuenta_in=accin, monto=800)
         self.assertIsNone(mov.account_out)
 
@@ -91,15 +94,15 @@ class MovementModelTest(TestCase):
         """ Acción:     Se crea un movimiento de salida
             Chequear:   No se genera ningún contenido en la cuenta de entrada del
                         movimiento"""
-        accout = create_account(nombre='Cuenta', saldo_inicial=4500)
+        accout = create_account(cod='act', nombre='Cuenta', saldo_inicial=4500)
         mov = create_movement(cuenta_out=accout, monto=800)
         self.assertIsNone(mov.account_in)
 
     #     def test_trans_mov_account_in_and_out_must_be_different(self):
     #         """ Acción:     Se crea un movimiento de traspaso
     #             Chequear:   La cuenta de entrada y la de salida no son la misma cuenta"""
-    #         accin = accout = create_account(nombre='Cuenta1', saldo_inicial = 2000)
-    #         ####accout = create_account(nombre='Cuenta2', saldo_inicial = 4500)
+    #         accin = accout = create_account(cod='act', nombre='Cuenta1', saldo_inicial = 2000)
+    #         ####accout = create_account(cod='act', nombre='Cuenta2', saldo_inicial = 4500)
     #         mov = create_movement(cuenta_in = accin, cuenta_out = accout,
     #                               monto = 900)
     #         self.assertNotEqual(mov.account_in, mov.account_out)
@@ -108,7 +111,7 @@ class MovementModelTest(TestCase):
         """ Acción:     Se crea un movimiento de entrada
             Chequear:   Al menos una de las dos cuentas (la de entrada o la de salida)
                         tiene algún contenido"""
-        acc = create_account(nombre='Account', saldo_inicial=1200)
+        acc = create_account(cod='act', nombre='Account', saldo_inicial=1200)
         mov = create_movement(cuenta_in=acc, monto=100)
         self.assertTrue(mov.account_in is not None or mov.account_out is not None)
 
@@ -117,8 +120,8 @@ class MovementModelTest(TestCase):
             Chequear:   El nuevo saldo de la cuenta de entrada es igual al 
                         saldo anterior a la modificación menos el monto anterior
                         del movimiento más el monto nuevo"""
-        accin = create_account(nombre='Account_in', saldo_inicial=23400)
-        accout = create_account(nombre='Account_out', saldo_inicial=34200)
+        accin = create_account(cod='ai', nombre='Account_in', saldo_inicial=23400)
+        accout = create_account(cod='ao', nombre='Account_out', saldo_inicial=34200)
         mov = create_movement(cuenta_in=accin, cuenta_out=accout, monto=1500)
         balance = accin.balance
         mov.amount = 2000
@@ -130,8 +133,8 @@ class MovementModelTest(TestCase):
             Chequear:   El nuevo saldo de la cuenta de salida es igual al 
                         saldo anterior a la modificación más el monto anterior
                         del movimiento menos el monto nuevo"""
-        accin = create_account(nombre='Account_in', saldo_inicial=23400)
-        accout = create_account(nombre='Account_out', saldo_inicial=34200)
+        accin = create_account(cod='ain', nombre='Account_in', saldo_inicial=23400)
+        accout = create_account(cod='aou', nombre='Account_out', saldo_inicial=34200)
         mov = create_movement(cuenta_in=accin, cuenta_out=accout, monto=1500)
         balance = accout.balance
         mov.amount = 2000
@@ -143,7 +146,7 @@ class MovementModelTest(TestCase):
             Chequear:   El nuevo saldo de la cuenta de entrada es igual al 
                         saldo anterior a la modificación menos el monto anterior
                         del movimiento más el monto nuevo"""
-        acc = create_account(nombre='Account', saldo_inicial=23400)
+        acc = create_account(cod='act', nombre='Account', saldo_inicial=23400)
         mov = create_movement(cuenta_in=acc, monto=1500)
         balance = acc.balance
         mov.amount = 2000
@@ -155,7 +158,7 @@ class MovementModelTest(TestCase):
             Chequear:   El nuevo saldo de la cuenta de salida es igual al 
                         saldo anterior a la modificación más el monto anterior
                         del movimiento menos el monto nuevo"""
-        acc = create_account(nombre='Account', saldo_inicial=23400)
+        acc = create_account(cod='act', nombre='Account', saldo_inicial=23400)
         mov = create_movement(cuenta_out=acc, monto=1500)
         balance = acc.balance
         mov.amount = 2000
@@ -167,8 +170,8 @@ class MovementModelTest(TestCase):
         """ Accion:    Un movimiento que tiene account_in y no account_out
                        pasa a tener account_out y no account_in
             Chequear:  movement.amount se resta del saldo de la vieja account_in"""
-        accinold = create_account(nombre='Account_in_old', saldo_inicial=23400)
-        accoutnew = create_account(nombre='Account_out_new', saldo_inicial=44580)
+        accinold = create_account(cod='aio', nombre='Account_in_old', saldo_inicial=23400)
+        accoutnew = create_account(cod='aon', nombre='Account_out_new', saldo_inicial=44580)
         mov = create_movement(cuenta_in=accinold, monto=1500)
 
         balance = accinold.balance
@@ -185,8 +188,8 @@ class MovementModelTest(TestCase):
         """ Accion:    Un movimiento que tiene account_in y no account_out
                        pasa a tener account_out y no account_in
             Chequear:  movement.amount resta del saldo de la nueva account_out"""
-        accinold = create_account(nombre='Account_in_old', saldo_inicial=23400)
-        accoutnew = create_account(nombre='Account_out_new', saldo_inicial=44580)
+        accinold = create_account(cod='aio', nombre='Account_in_old', saldo_inicial=23400)
+        accoutnew = create_account(cod='aon', nombre='Account_out_new', saldo_inicial=44580)
         mov = create_movement(cuenta_in=accinold, monto=1500)
         balance = accoutnew.balance
         mov.account_in = None
@@ -199,7 +202,7 @@ class MovementModelTest(TestCase):
         """ Accion:    Un movimiento que tiene account_in y no account_out
                        pasa a tener em account_out la cuenta que tenía en account_in
             Chequear:  movement.amount resta del saldo de la nueva account_out"""
-        acc = create_account(nombre='Account', saldo_inicial=23500)
+        acc = create_account(cod='act', nombre='Account', saldo_inicial=23500)
         mov = create_movement(cuenta_in=acc, monto=1500)
 
         balance = acc.balance
@@ -215,8 +218,8 @@ class MovementModelTest(TestCase):
         """ Accion:    Un movimiento que tiene account_out y no account_in
                        pasa a tener account_in y no account_out
             Chequear:  movement.amount suma al saldo de la vieja account_out"""
-        accoutold = create_account(nombre='Account_in_old', saldo_inicial=23400)
-        accinnew = create_account(nombre='Account_out_new', saldo_inicial=44580)
+        accoutold = create_account(cod='aoo', nombre='Account_in_old', saldo_inicial=23400)
+        accinnew = create_account(cod='ain', nombre='Account_out_new', saldo_inicial=44580)
         mov = create_movement(cuenta_out=accoutold, monto=1500)
 
         balance = accoutold.balance
@@ -231,9 +234,9 @@ class MovementModelTest(TestCase):
         """ Accion:    Un movimiento que tiene account_out y no account_in
                        pasa a tener account_in y no account_out
             Chequear:  movement.amount suma al saldo de la nueva account_in"""
-        accoutold = create_account(nombre='Account_in_old',
+        accoutold = create_account(cod='aoo', nombre='Account_in_old',
                                    saldo_inicial=20000)
-        accinnew = create_account(nombre='Account_out_new',
+        accinnew = create_account(cod='ain', nombre='Account_out_new',
                                   saldo_inicial=40000)
         mov = create_movement(cuenta_out=accoutold, monto=1500)
 
@@ -250,7 +253,7 @@ class MovementModelTest(TestCase):
         """ Accion:    Un movimiento que tiene account_in y no account_out
                        pasa a tener en account_out la cuenta que tenía en account_in
             Chequear:  movement.amount resta del saldo de la nueva account_out"""
-        acc = create_account(nombre='Account', saldo_inicial=23500)
+        acc = create_account(cod='act', nombre='Account', saldo_inicial=23500)
         mov = create_movement(cuenta_out=acc, monto=1500)
 
         balance = acc.balance
@@ -267,8 +270,8 @@ class MovementModelTest(TestCase):
         """ Accion:    Un movimiento de traspaso pasa a ser de entrada
             Chequear:  Se suma el monto de la operación al saldo de la cuenta
                        de salida"""
-        accin = create_account(nombre='Account_in', saldo_inicial=23488)
-        accout = create_account(nombre='Account_out', saldo_inicial=34289)
+        accin = create_account(cod='ai', nombre='Account_in', saldo_inicial=23488)
+        accout = create_account(cod='ao', nombre='Account_out', saldo_inicial=34289)
         mov = create_movement(cuenta_in=accin, cuenta_out=accout, monto=2340)
 
         balance = accout.balance
@@ -283,8 +286,8 @@ class MovementModelTest(TestCase):
     def test_mov_trans_to_mov_in_must_no_change_accin(self):
         """ Accion:    Un movimiento de traspaso pasa a ser de entrada
             Chequear:  El saldo de la cuenta de entrada permanece igual"""
-        accin = create_account(nombre='Account_in', saldo_inicial=23488)
-        accout = create_account(nombre='Account_out', saldo_inicial=34289)
+        accin = create_account(cod='ai', nombre='Account_in', saldo_inicial=23488)
+        accout = create_account(cod='ao', nombre='Account_out', saldo_inicial=34289)
         mov = create_movement(cuenta_in=accin, cuenta_out=accout, monto=2340)
         balance = accin.balance
         mov.account_out = None
@@ -296,8 +299,8 @@ class MovementModelTest(TestCase):
         """ Accion:    Un movimiento de traspaso pasa a ser de salida
             Chequear   El monto del movimiento debe restarse de la vieja
                        cuenta de entrada."""
-        accin = create_account(nombre='Account_in', saldo_inicial=23488)
-        accout = create_account(nombre='Account_out', saldo_inicial=34289)
+        accin = create_account(cod='ai', nombre='Account_in', saldo_inicial=23488)
+        accout = create_account(cod='ao', nombre='Account_out', saldo_inicial=34289)
         mov = create_movement(cuenta_in=accin, cuenta_out=accout,
                               monto=2340)
 
@@ -313,8 +316,8 @@ class MovementModelTest(TestCase):
     def test_mov_trans_to_mov_out_must_no_change_accout(self):
         """ Accion:    Un movimiento de traspaso pasa a ser de salida
             Chequear:  El saldo de la cuenta de salida permanece igual"""
-        accin = create_account(nombre='Account_in', saldo_inicial=23488)
-        accout = create_account(nombre='Account_out', saldo_inicial=34289)
+        accin = create_account(cod='ai', nombre='Account_in', saldo_inicial=23488)
+        accout = create_account(cod='ao', nombre='Account_out', saldo_inicial=34289)
         mov = create_movement(cuenta_in=accin, cuenta_out=accout, monto=2340)
         balance = accout.balance
         mov.account_in = None
@@ -325,8 +328,8 @@ class MovementModelTest(TestCase):
         """ Accion:    Un movimiento de entrada pasa a ser de traspaso
             Chequear:  El monto del movimiento se resta del saldo de la cuenta
                        de salida"""
-        accin = create_account(nombre='Account_in', saldo_inicial=23488)
-        accout = create_account(nombre='Account_out', saldo_inicial=34289)
+        accin = create_account(cod='ai', nombre='Account_in', saldo_inicial=23488)
+        accout = create_account(cod='ao', nombre='Account_out', saldo_inicial=34289)
         mov = create_movement(cuenta_in=accin, monto=2350)
         mov.account_out = accout
         mov.save()
@@ -335,8 +338,8 @@ class MovementModelTest(TestCase):
     def test_mov_in_to_mov_trans_must_no_change_accin(self):
         """ Accion:    Un movimiento de entrada pasa a ser de traspaso
             Chequear:  El saldo de la cuenta de entrada permanece igual"""
-        accin = create_account(nombre='Account_in', saldo_inicial=23488)
-        accout = create_account(nombre='Account_out', saldo_inicial=34289)
+        accin = create_account(cod='ai', nombre='Account_in', saldo_inicial=23488)
+        accout = create_account(cod='ao', nombre='Account_out', saldo_inicial=34289)
         mov = create_movement(cuenta_in=accin, monto=2350)
         balance = accin.balance
         mov.account_out = accout
@@ -347,8 +350,8 @@ class MovementModelTest(TestCase):
         """ Accion:    Un movimiento de salida pasa a ser de traspaso
             Chequear:  El monto del movimiento se suma al saldo de la cuenta
                        de entrada"""
-        accin = create_account(nombre='Account_in', saldo_inicial=23488)
-        accout = create_account(nombre='Account_out', saldo_inicial=34289)
+        accin = create_account(cod='ai', nombre='Account_in', saldo_inicial=23488)
+        accout = create_account(cod='ao', nombre='Account_out', saldo_inicial=34289)
         mov = create_movement(cuenta_out=accout, monto=2350)
         mov.account_in = accin
         mov.save()
@@ -357,8 +360,8 @@ class MovementModelTest(TestCase):
     def test_mov_out_to_mov_trans_must_no_change_accout(self):
         """ Accion:    Un movimiento de salida pasa a ser de traspaso
             Chequear:  El saldo de la cuenta de salida permanece igual"""
-        accin = create_account(nombre='Account_in', saldo_inicial=23488)
-        accout = create_account(nombre='Account_out', saldo_inicial=34289)
+        accin = create_account(cod='ai', nombre='Account_in', saldo_inicial=23488)
+        accout = create_account(cod='ao', nombre='Account_out', saldo_inicial=34289)
         mov = create_movement(cuenta_out=accout, monto=2350)
         balance = accout.balance
         mov.account_in = accin
@@ -371,8 +374,8 @@ class MovementModelTest(TestCase):
                        de entrada y la de salida
             Chequear:  El monto del movimiento se suma dos veces al saldo de la 
                        nueva cuenta de entrada"""
-        acc1 = create_account(nombre='Account_1', saldo_inicial=23488)
-        acc2 = create_account(nombre='Account_2', saldo_inicial=34289)
+        acc1 = create_account(cod='ac1', nombre='Account_1', saldo_inicial=23488)
+        acc2 = create_account(cod='ac2', nombre='Account_2', saldo_inicial=34289)
         mov = create_movement(cuenta_in=acc1, cuenta_out=acc2, monto=2350)
 
         balance = mov.account_out.balance
@@ -388,8 +391,8 @@ class MovementModelTest(TestCase):
                        de entrada y la de salida
             Chequear:  El monto del movimiento se suma dos veces al saldo de la 
                        nueva cuenta de entrada"""
-        acc1 = create_account(nombre='Account_1', saldo_inicial=23488)
-        acc2 = create_account(nombre='Account_2', saldo_inicial=34289)
+        acc1 = create_account(cod='ac1', nombre='Account_1', saldo_inicial=23488)
+        acc2 = create_account(cod='ac2', nombre='Account_2', saldo_inicial=34289)
         mov = create_movement(cuenta_in=acc1, cuenta_out=acc2, monto=2350)
         balance = mov.account_in.balance
         acc = mov.account_in
@@ -403,9 +406,9 @@ class MovementModelTest(TestCase):
                        el monto.
             Chequear:  El viejo monto debe restarse del saldo de la vieja 
                        cuenta de entrada."""
-        accold = create_account(nombre='Account_old', saldo_inicial=10000)
+        accold = create_account(cod='ao', nombre='Account_old', saldo_inicial=10000)
         accoldbal = accold.balance
-        accnew = create_account(nombre='Account_new', saldo_inicial=20000)
+        accnew = create_account(cod='an', nombre='Account_new', saldo_inicial=20000)
         mov = create_movement(cuenta_in=accold, monto=1000)
 
         mov.account_in = accnew
@@ -424,9 +427,9 @@ class MovementModelTest(TestCase):
                        el monto.
             Chequear:  El nuevo monto debe sumarse al saldo de la nueva 
                        cuenta de entrada."""
-        accold = create_account(nombre='Account_old', saldo_inicial=33000)
+        accold = create_account(cod='ao', nombre='Account_old', saldo_inicial=33000)
 
-        accnew = create_account(nombre='Account_new', saldo_inicial=84000)
+        accnew = create_account(cod='an', nombre='Account_new', saldo_inicial=84000)
         accnewbal = accnew.balance
         mov = create_movement(cuenta_in=accold, monto=500)
 
@@ -442,9 +445,9 @@ class MovementModelTest(TestCase):
                        modifica el monto.
             Chequear:  El viejo monto debe sumarse al saldo de la vieja 
                        cuenta de salida."""
-        accold = create_account(nombre='Account_old', saldo_inicial=30000)
+        accold = create_account(cod='aol', nombre='Account_old', saldo_inicial=30000)
         accoldbal = accold.balance
-        accnew = create_account(nombre='Account_new', saldo_inicial=100000)
+        accnew = create_account(cod='anw', nombre='Account_new', saldo_inicial=100000)
         mov = create_movement(cuenta_out=accold, monto=500)
 
         mov.account_out = accnew
@@ -461,8 +464,8 @@ class MovementModelTest(TestCase):
                        el monto.
             Chequear:  El nuevo monto debe restarse al saldo de la nueva 
                        cuenta de salida."""
-        accold = create_account(nombre='Account_old', saldo_inicial=30000)
-        accnew = create_account(nombre='Account_new', saldo_inicial=50000)
+        accold = create_account(cod='aol', nombre='Account_old', saldo_inicial=30000)
+        accnew = create_account(cod='anw', nombre='Account_new', saldo_inicial=50000)
         mov = create_movement(cuenta_out=accold, monto=500)
 
         balance = accnew.balance
@@ -477,7 +480,7 @@ class MovementModelTest(TestCase):
                        al mismo tiempo que se modifica el monto.
             Chequear:  Debe restarse el viejo monto sumado al nuevo monto del saldo 
                        de la cuenta."""
-        acc = create_account(nombre='Account', saldo_inicial=10000)
+        acc = create_account(cod='act', nombre='Account', saldo_inicial=10000)
         accoldbal = acc.balance
         mov = create_movement(cuenta_in=acc, monto=200)
 
@@ -496,10 +499,10 @@ class MovementModelTest(TestCase):
                        al mismo tiempo que se modifica el monto.
             Chequear:  Debe restarse el viejo monto del saldo de la vieja cuenta
                        de entrada."""
-        accinold = create_account(nombre='Account_in_old',
+        accinold = create_account(cod='aio', nombre='Account_in_old',
                                   saldo_inicial=10000)
         accinoldbalance = accinold.balance
-        accoutnew = create_account(nombre='Account_out_new',
+        accoutnew = create_account(cod='aon', nombre='Account_out_new',
                                    saldo_inicial=50000)
         mov = create_movement(cuenta_in=accinold, monto=3000)
 
@@ -527,8 +530,8 @@ class MovementModelTest(TestCase):
                        al mismo tiempo que se modifica el monto.
             Chequear:  Debe restarse el nuevo monto del saldo de la nueva cuenta
                        de salida."""
-        accinold = create_account(nombre='Account_in_old', saldo_inicial=34698)
-        accoutnew = create_account(nombre='Account_out_new', saldo_inicial=54335)
+        accinold = create_account(cod='aio', nombre='Account_in_old', saldo_inicial=34698)
+        accoutnew = create_account(cod='aon', nombre='Account_out_new', saldo_inicial=54335)
         mov = create_movement(cuenta_in=accinold, monto=3552)
 
         balance = accoutnew.balance
@@ -545,7 +548,7 @@ class MovementModelTest(TestCase):
                        al mismo tiempo que se modifica el monto.
             Chequear:  Debe sumarse el viejo monto sumado al nuevo monto al saldo 
                        de la cuenta."""
-        acc = create_account(nombre='Account', saldo_inicial=30000)
+        acc = create_account(cod='act', nombre='Account', saldo_inicial=30000)
         accoldbal = acc.balance
         mov = create_movement(cuenta_out=acc, monto=500)
         balance = acc.balance
@@ -564,8 +567,8 @@ class MovementModelTest(TestCase):
                        al mismo tiempo que se modifica el monto.
             Chequear:  Debe sumarse el viejo monto al saldo de la vieja cuenta
                        de salida."""
-        accoutold = create_account(nombre='Account_out_old', saldo_inicial=34698)
-        accinnew = create_account(nombre='Account_in_new', saldo_inicial=54335)
+        accoutold = create_account(cod='aoo', nombre='Account_out_old', saldo_inicial=34698)
+        accinnew = create_account(cod='ain', nombre='Account_in_new', saldo_inicial=54335)
         mov = create_movement(cuenta_out=accoutold, monto=3552)
 
         acc = mov.account_out
@@ -587,8 +590,8 @@ class MovementModelTest(TestCase):
                        al mismo tiempo que se modifica el monto.
             Chequear:  Debe sumarse el nuevo monto al saldo de la nueva cuenta
                        de entrada+."""
-        accoutold = create_account(nombre='Account_out_old', saldo_inicial=34698)
-        accinnew = create_account(nombre='Account_in_new', saldo_inicial=54335)
+        accoutold = create_account(cod='aoo', nombre='Account_out_old', saldo_inicial=34698)
+        accinnew = create_account(cod='ain', nombre='Account_in_new', saldo_inicial=54335)
         mov = create_movement(cuenta_out=accoutold, monto=3552)
 
         balance = accinnew.balance
@@ -604,8 +607,8 @@ class MovementModelTest(TestCase):
                        al mismo tiempo que se modifica el monto.
             Chequear:  Debe restarse el viejo monto y sumarse el nuevo de la
                        cuenta de entrada."""
-        accin = create_account(nombre='Account_in', saldo_inicial=54334)
-        accoutnew = create_account(nombre='Account_out_new', saldo_inicial=144332)
+        accin = create_account(cod='ai', nombre='Account_in', saldo_inicial=54334)
+        accoutnew = create_account(cod='aon', nombre='Account_out_new', saldo_inicial=144332)
         mov = create_movement(cuenta_in=accin, monto=2322)
 
         mount = mov.amount
@@ -622,8 +625,8 @@ class MovementModelTest(TestCase):
         """ Acción:    Un movimiento de entrada cambia a movimiento de traspaso
                        al mismo tiempo que se modifica el monto.
             Chequear:  Debe restarse el nuevo monto de la nueva cuenta de salida."""
-        accin = create_account(nombre='Account_in', saldo_inicial=54334)
-        accoutnew = create_account(nombre='Account_out_new', saldo_inicial=144332)
+        accin = create_account(cod='ai', nombre='Account_in', saldo_inicial=54334)
+        accoutnew = create_account(cod='aon', nombre='Account_out_new', saldo_inicial=144332)
         mov = create_movement(cuenta_in=accin, monto=2322)
 
         balance = accoutnew.balance
@@ -639,8 +642,8 @@ class MovementModelTest(TestCase):
                        al mismo tiempo que se modifica el monto.
             Chequear:  Debe sumarse el viejo monto y restarse el nuevo 
                        de la cuenta de salida."""
-        accout = create_account(nombre='Account_out', saldo_inicial=54334)
-        accinnew = create_account(nombre='Account_in_new', saldo_inicial=144332)
+        accout = create_account(cod='ao', nombre='Account_out', saldo_inicial=54334)
+        accinnew = create_account(cod='ain', nombre='Account_in_new', saldo_inicial=144332)
         mov = create_movement(cuenta_out=accout, monto=2322)
 
         mount = mov.amount
@@ -658,9 +661,9 @@ class MovementModelTest(TestCase):
         """ Acción:    Un movimiento de entrada cambia a movimiento de traspaso
                        al mismo tiempo que se modifica el monto.
             Chequear:  Debe sumarse el nuevo monto a la nueva cuenta de entrada."""
-        accout = create_account(nombre='Account_out',
+        accout = create_account(cod='ao', nombre='Account_out',
                                 saldo_inicial=50000)
-        accinnew = create_account(nombre='Account_in_new',
+        accinnew = create_account(cod='ain', nombre='Account_in_new',
                                   saldo_inicial=100000)
         balance = accinnew.balance
         mov = create_movement(cuenta_out=accout, monto=2000)
@@ -677,8 +680,8 @@ class MovementModelTest(TestCase):
                        al mismo tiempo que se modifica el monto.
             Chequear:  Debe sumarse el viejo monto a la cuenta de salida 
                        eliminada."""
-        accin = create_account(nombre='Account_in', saldo_inicial=54334)
-        accout = create_account(nombre='Account_out', saldo_inicial=144332)
+        accin = create_account(cod='ai', nombre='Account_in', saldo_inicial=54334)
+        accout = create_account(cod='ao', nombre='Account_out', saldo_inicial=144332)
         mov = create_movement(cuenta_in=accin, cuenta_out=accout,
                               monto=2322)
 
@@ -700,8 +703,8 @@ class MovementModelTest(TestCase):
                        al mismo tiempo que se modifica el monto.
             Chequear:  Debe restarse el viejo monto y sumarse el nuevo 
                        a la cuenta de entrada."""
-        accin = create_account(nombre='Account_in', saldo_inicial=54334)
-        accout = create_account(nombre='Account_out', saldo_inicial=144332)
+        accin = create_account(cod='ai', nombre='Account_in', saldo_inicial=54334)
+        accout = create_account(cod='ao', nombre='Account_out', saldo_inicial=144332)
         mov = create_movement(cuenta_in=accin, cuenta_out=accout, monto=2322)
 
         mount = mov.amount
@@ -718,8 +721,8 @@ class MovementModelTest(TestCase):
         """ Acción:    Un movimiento de traspaso cambia a movimiento de salida
                        al mismo tiempo que se modifica el monto.
             Chequear:  Debe restarse el viejo monto a la cuenta de entrada eliminada."""
-        accin = create_account(nombre='Account_in', saldo_inicial=54334)
-        accout = create_account(nombre='Account_out', saldo_inicial=144332)
+        accin = create_account(cod='ai', nombre='Account_in', saldo_inicial=54334)
+        accout = create_account(cod='ao', nombre='Account_out', saldo_inicial=144332)
         mov = create_movement(cuenta_in=accin, cuenta_out=accout,
                               monto=2322)
 
@@ -740,8 +743,8 @@ class MovementModelTest(TestCase):
                        al mismo tiempo que se modifica el monto.
             Chequear:  Debe sumarse el viejo monto y restarse el nuevo 
                        a la cuenta de entrada."""
-        accin = create_account(nombre='Account_in', saldo_inicial=54334)
-        accout = create_account(nombre='Account_out', saldo_inicial=144332)
+        accin = create_account(cod='ai', nombre='Account_in', saldo_inicial=54334)
+        accout = create_account(cod='ao', nombre='Account_out', saldo_inicial=144332)
         mov = create_movement(cuenta_in=accin, cuenta_out=accout, monto=2322)
 
         mount = mov.amount
@@ -760,8 +763,8 @@ class MovementModelTest(TestCase):
                        al mismo tiempo que se modifica el monto.
             Chequear:  Deben restarse el viejo monto y el nuevo 
                        a la cuenta intercambiada a la salida."""
-        accin = create_account(nombre='Account_in', saldo_inicial=54334)
-        accout = create_account(nombre='Account_out', saldo_inicial=144332)
+        accin = create_account(cod='ai', nombre='Account_in', saldo_inicial=54334)
+        accout = create_account(cod='ao', nombre='Account_out', saldo_inicial=144332)
         mov = create_movement(cuenta_in=accin, cuenta_out=accout, monto=2322)
 
         mount = mov.amount
@@ -782,9 +785,9 @@ class MovementModelTest(TestCase):
                        al mismo tiempo que se modifica el monto.
             Chequear:  Deben sumarse el viejo monto y el nuevo 
                        a la cuenta intercambiada a la entrada."""
-        accin = create_account(nombre='Account_in',
+        accin = create_account(cod='ai', nombre='Account_in',
                                saldo_inicial=50000)
-        accout = create_account(nombre='Account_out',
+        accout = create_account(cod='ao', nombre='Account_out',
                                 saldo_inicial=40000)
         mov = create_movement(cuenta_in=accin, cuenta_out=accout,
                               monto=2000)
@@ -805,11 +808,11 @@ class MovementModelTest(TestCase):
         """ Acción:    En un movimiento de traspaso cambia la cuenta de entrada
                        al mismo tiempo que se modifica el monto.
             Chequear:  Debe restarse el viejo monto de la vieja cuenta de entrada."""
-        accinold = create_account(nombre='Account_in_old',
+        accinold = create_account(cod='aio', nombre='Account_in_old',
                                   saldo_inicial=50000)
-        accout = create_account(nombre='Account_out',
+        accout = create_account(cod='ao', nombre='Account_out',
                                 saldo_inicial=140000)
-        accinnew = create_account(nombre='Account_in_new',
+        accinnew = create_account(cod='ain', nombre='Account_in_new',
                                   saldo_inicial=200000)
         mov = create_movement(cuenta_in=accinold, cuenta_out=accout,
                               monto=2000)
@@ -830,9 +833,9 @@ class MovementModelTest(TestCase):
         """ Acción:    En un movimiento de traspaso cambia la cuenta de entrada
                        al mismo tiempo que se modifica el monto.
             Chequear:  Debe sumarse el nuevo monto a la nueva cuenta de entrada."""
-        accinold = create_account(nombre='Account_in_old', saldo_inicial=54334)
-        accout = create_account(nombre='Account_out', saldo_inicial=144332)
-        accinnew = create_account(nombre='Account_in_new', saldo_inicial=22346)
+        accinold = create_account(cod='aio', nombre='Account_in_old', saldo_inicial=54334)
+        accout = create_account(cod='ao', nombre='Account_out', saldo_inicial=144332)
+        accinnew = create_account(cod='ain', nombre='Account_in_new', saldo_inicial=22346)
         mov = create_movement(cuenta_in=accinold, cuenta_out=accout, monto=2322)
 
         mount = mov.amount
@@ -849,10 +852,10 @@ class MovementModelTest(TestCase):
         """ Acción:    En un movimiento de traspaso cambia la cuenta de salida
                        al mismo tiempo que se modifica el monto.
             Chequear:  Debe sumarse el viejo monto a la vieja cuenta de salida."""
-        accin = create_account(nombre='Account_in', saldo_inicial=50000)
-        accoutold = create_account(nombre='Account_out_old',
+        accin = create_account(cod='ai', nombre='Account_in', saldo_inicial=50000)
+        accoutold = create_account(cod='aoo', nombre='Account_out_old',
                                    saldo_inicial=40000)
-        accoutnew = create_account(nombre='Account_out_new',
+        accoutnew = create_account(cod='aon', nombre='Account_out_new',
                                    saldo_inicial=20000)
         mov = create_movement(cuenta_in=accin, cuenta_out=accoutold,
                               monto=2000)
@@ -873,9 +876,9 @@ class MovementModelTest(TestCase):
         """ Acción:    En un movimiento de traspaso cambia la cuenta de salida
                        al mismo tiempo que se modifica el monto.
             Chequear:  Debe restarse el nuevo monto de la nueva cuenta de salida."""
-        accin = create_account(nombre='Account_in', saldo_inicial=54334)
-        accoutold = create_account(nombre='Account_out_old', saldo_inicial=144332)
-        accoutnew = create_account(nombre='Account_out_new', saldo_inicial=22346)
+        accin = create_account(cod='ai', nombre='Account_in', saldo_inicial=54334)
+        accoutold = create_account(cod='aoo', nombre='Account_out_old', saldo_inicial=144332)
+        accoutnew = create_account(cod='aon', nombre='Account_out_new', saldo_inicial=22346)
         mov = create_movement(cuenta_in=accin, cuenta_out=accoutold, monto=2322)
 
         mount = mov.amount
@@ -895,13 +898,13 @@ class MovementModelTest(TestCase):
                        y la de entrada al mismo tiempo que se modifica el monto.
             Chequear:  Debe restarse el viejo monto de la vieja 
                        cuenta de entrada."""
-        accinold = create_account(nombre='Account_in_old',
+        accinold = create_account(cod='aio', nombre='Account_in_old',
                                   saldo_inicial=50000)
-        accoutold = create_account(nombre='Account_out_old',
+        accoutold = create_account(cod='aoo', nombre='Account_out_old',
                                    saldo_inicial=40000)
-        accinnew = create_account(nombre='Account_in_new',
+        accinnew = create_account(cod='ain', nombre='Account_in_new',
                                   saldo_inicial=80000)
-        accoutnew = create_account(nombre='Account_out_new',
+        accoutnew = create_account(cod='aon', nombre='Account_out_new',
                                    saldo_inicial=20000)
 
         balance = accinold.balance
@@ -924,13 +927,13 @@ class MovementModelTest(TestCase):
         """ Acción:    En un movimiento de traspaso cambian la cuenta de salida
                        y la de entrada al mismo tiempo que se modifica el monto.
             Chequear:  Debe sumarse el nuevo monto a la nueva cuenta de entrada."""
-        accinold = create_account(nombre='Account_in_old',
+        accinold = create_account(cod='aio', nombre='Account_in_old',
                                   saldo_inicial=50000)
-        accoutold = create_account(nombre='Account_out_old',
+        accoutold = create_account(cod='aoo', nombre='Account_out_old',
                                    saldo_inicial=40000)
-        accinnew = create_account(nombre='Account_in_new',
+        accinnew = create_account(cod='ain', nombre='Account_in_new',
                                   saldo_inicial=80000)
-        accoutnew = create_account(nombre='Account_out_new',
+        accoutnew = create_account(cod='aon', nombre='Account_out_new',
                                    saldo_inicial=20000)
         mov = create_movement(cuenta_in=accinold,
                               cuenta_out=accoutold,
@@ -950,13 +953,13 @@ class MovementModelTest(TestCase):
         """ Acción:    En un movimiento de traspaso cambian la cuenta de salida
                        y la de entrada al mismo tiempo que se modifica el monto.
             Chequear:  Debe sumarse el viejo monto a la vieja cuenta de salida."""
-        accinold = create_account(nombre='Account_in_old',
+        accinold = create_account(cod='aio', nombre='Account_in_old',
                                   saldo_inicial=50000)
-        accoutold = create_account(nombre='Account_out_old',
+        accoutold = create_account(cod='aoo', nombre='Account_out_old',
                                    saldo_inicial=40000)
-        accinnew = create_account(nombre='Account_in_new',
+        accinnew = create_account(cod='ain', nombre='Account_in_new',
                                   saldo_inicial=80000)
-        accoutnew = create_account(nombre='Account_out_new',
+        accoutnew = create_account(cod='aon', nombre='Account_out_new',
                                    saldo_inicial=20000)
 
         accoutoldbal = accoutold.balance
@@ -982,13 +985,13 @@ class MovementModelTest(TestCase):
         """ Acción:    En un movimiento de traspaso cambian la cuenta de salida
                        y la de entrada al mismo tiempo que se modifica el monto.
             Chequear:  Debe restarse el nuevo monto de la nueva cuenta de salida."""
-        accinold = create_account(nombre='Account_in_old',
+        accinold = create_account(cod='aio', nombre='Account_in_old',
                                   saldo_inicial=50000)
-        accoutold = create_account(nombre='Account_out_old',
+        accoutold = create_account(cod='aoo', nombre='Account_out_old',
                                    saldo_inicial=40000)
-        accinnew = create_account(nombre='Account_in_new',
+        accinnew = create_account(cod='ain', nombre='Account_in_new',
                                   saldo_inicial=80000)
-        accoutnew = create_account(nombre='Account_out_new',
+        accoutnew = create_account(cod='aon', nombre='Account_out_new',
                                    saldo_inicial=20000)
 
         balance = accoutnew.balance
@@ -1010,11 +1013,11 @@ class MovementModelTest(TestCase):
                        ser la de salida y es reemplazada por una nueva cuenta
                        de entrada, al mismo tiempo que cambia el monto.
             Chequear:  Debe sumarse el nuevo monto a la nueva cuenta de entrada."""
-        accinold = create_account(nombre='Account_in_old',
+        accinold = create_account(cod='aio', nombre='Account_in_old',
                                   saldo_inicial=50000)
-        accoutold = create_account(nombre='Account_out_old',
+        accoutold = create_account(cod='aoo', nombre='Account_out_old',
                                    saldo_inicial=40000)
-        accinnew = create_account(nombre='Account_in_new',
+        accinnew = create_account(cod='ain', nombre='Account_in_new',
                                   saldo_inicial=80000)
 
         accinnewbal = accinnew.balance
@@ -1036,11 +1039,11 @@ class MovementModelTest(TestCase):
                        de entrada, al mismo tiempo que cambia el monto.
             Chequear:  Deben restarse el viejo y el nuevo monto a la 
                        cuenta que ahora es de salida."""
-        accinold = create_account(nombre='Account_in_old',
+        accinold = create_account(cod='aio', nombre='Account_in_old',
                                   saldo_inicial=50000)
-        accoutold = create_account(nombre='Account_out_old',
+        accoutold = create_account(cod='aoo', nombre='Account_out_old',
                                    saldo_inicial=40000)
-        accinnew = create_account(nombre='Account_in_new',
+        accinnew = create_account(cod='ain', nombre='Account_in_new',
                                   saldo_inicial=80000)
         mov = create_movement(cuenta_in=accinold,
                               cuenta_out=accoutold,
@@ -1062,9 +1065,9 @@ class MovementModelTest(TestCase):
                        ser la de entrada y es reemplazada por una nueva cuenta
                        de salida, al mismo tiempo que cambia el monto.
             Chequear:  Debe restarse el nuevo monto de la nueva cuenta de salida."""
-        accinold = create_account(nombre='Account_in_old', saldo_inicial=54334)
-        accoutold = create_account(nombre='Account_out_old', saldo_inicial=144332)
-        accoutnew = create_account(nombre='Account_out_new', saldo_inicial=88608)
+        accinold = create_account(cod='aio', nombre='Account_in_old', saldo_inicial=54334)
+        accoutold = create_account(cod='aoo', nombre='Account_out_old', saldo_inicial=144332)
+        accoutnew = create_account(cod='aon', nombre='Account_out_new', saldo_inicial=88608)
         mov = create_movement(cuenta_in=accinold,
                               cuenta_out=accoutold,
                               monto=2322)
@@ -1085,11 +1088,11 @@ class MovementModelTest(TestCase):
                        de salida, al mismo tiempo que cambia el monto.
             Chequear:  Deben sumarse el viejo y el nuevo monto a la nueva 
                        cuenta de entrada."""
-        accinold = create_account(nombre='Account_in_old',
+        accinold = create_account(cod='aio', nombre='Account_in_old',
                                   saldo_inicial=50000)
-        accoutold = create_account(nombre='Account_out_old',
+        accoutold = create_account(cod='aoo', nombre='Account_out_old',
                                    saldo_inicial=40000)
-        accoutnew = create_account(nombre='Account_out_new',
+        accoutnew = create_account(cod='aon', nombre='Account_out_new',
                                    saldo_inicial=80000)
         mov = create_movement(cuenta_in=accinold,
                               cuenta_out=accoutold,
@@ -1129,13 +1132,13 @@ class AccountModelTest(TestCase):
     def test_acc_creation_must_set_balance_to_balance_start(self):
         """ Acción:     Se crea una cuenta nueva
             Chequear:   El saldo de la cuenta debe ser igual al saldo inicial"""
-        acc = create_account(nombre='Account', saldo_inicial=1200)
+        acc = create_account(cod='act', nombre='Account', saldo_inicial=1200)
         self.assertEqual(acc.balance_start, acc.balance)
 
     def test_acc_creation_must_set_balance_previous_to_zero(self):
         """ Acción:     Se crea una cuenta nueva
             Chequear:   El saldo previo de la cuenta debe ser igual a cero"""
-        acc = create_account(nombre='Account', saldo_inicial=1200)
+        acc = create_account(cod='act', nombre='Account', saldo_inicial=1200)
         self.assertEqual(acc.balance_previous, 0)
 
     def test_acc_saving_must_not_set_balance_to_balance_start(self):
@@ -1143,7 +1146,7 @@ class AccountModelTest(TestCase):
                         inicial
             Chequear:   El saldo de la cuenta debe seguir siendo distinto del 
                         saldo inicial"""
-        acc = create_account(nombre='Account', saldo_inicial=1200)
+        acc = create_account(cod='act', nombre='Account', saldo_inicial=1200)
         mov = create_movement(cuenta_in=acc, monto=100)
         acc.name = 'Cuenta'
         acc.save()
@@ -1154,7 +1157,7 @@ class AccountModelTest(TestCase):
                         distinto de cero
             Chequear:   El saldo anterior de la cuenta debe seguir siendo 
                         distinto de cero"""
-        acc = create_account(nombre='Account', saldo_inicial=1200)
+        acc = create_account(cod='act', nombre='Account', saldo_inicial=1200)
         mov = create_movement(cuenta_in=acc, monto=100)
         acc.name = 'Cuenta'
         acc.save()
@@ -1163,7 +1166,7 @@ class AccountModelTest(TestCase):
     def test_mov_in_must_go_to_movements_in_(self):
         """ Acción:     Se genera un movimiento de entrada en la cuenta
             Chequear:   El movimiento generado debe ir a movements_in en la cuenta"""
-        acc = create_account(nombre='Account', saldo_inicial=1200)
+        acc = create_account(cod='act', nombre='Account', saldo_inicial=1200)
         mov = create_movement(cuenta_in=acc, monto=100)
         self.assertIs(acc.movements_in.count(), 1)
 
@@ -1171,14 +1174,14 @@ class AccountModelTest(TestCase):
         """ Acción:     Se genera un movimiento de entrada en la cuenta
             Chequear:   El movimiento generado no debe ir a movements_out en la 
                         cuenta"""
-        acc = create_account(nombre='Account', saldo_inicial=1200)
+        acc = create_account(cod='act', nombre='Account', saldo_inicial=1200)
         mov = create_movement(cuenta_in=acc, monto=100)
         self.assertIs(acc.movements_out.count(), 0)
 
     def test_mov_out_must_go_to_movements_out(self):
         """ Acción:     Se genera un movimiento de salida en la cuenta
             Chequear:   El movimiento generado debe ir a movements_out en la cuenta"""
-        acc = create_account(nombre='Account', saldo_inicial=1200)
+        acc = create_account(cod='act', nombre='Account', saldo_inicial=1200)
         mov = create_movement(cuenta_out=acc, monto=100)
         self.assertIs(acc.movements_out.count(), 1)
 
@@ -1186,7 +1189,7 @@ class AccountModelTest(TestCase):
         """ Acción:     Se genera un movimiento de salida en la cuenta
             Chequear:   El movimiento generado no debe ir a movements_in en la 
                         cuenta"""
-        acc = create_account(nombre='Account', saldo_inicial=1200)
+        acc = create_account(cod='act', nombre='Account', saldo_inicial=1200)
         mov = create_movement(cuenta_out=acc, monto=100)
         self.assertIs(acc.movements_in.count(), 0)
 
@@ -1194,8 +1197,8 @@ class AccountModelTest(TestCase):
         """ Acción:     Se genera un movimiento de traspaso
             Chequear:   El movimiento generado debe ir a movements_in en la cuenta
                         de entrada"""
-        accin = create_account(nombre='Account1', saldo_inicial=1200)
-        accout = create_account(nombre='Account2', saldo_inicial=800)
+        accin = create_account(cod='ai', nombre='Account1', saldo_inicial=1200)
+        accout = create_account(cod='ao', nombre='Account2', saldo_inicial=800)
         mov = create_movement(cuenta_in=accin, cuenta_out=accout, monto=100)
         self.assertIs(accin.movements_in.count(), 1)
 
@@ -1203,8 +1206,8 @@ class AccountModelTest(TestCase):
         """ Acción:     Se genera un movimiento de traspaso
             Chequear:   El movimiento generado no debe ir a movements_out en la cuenta
                         de entrada"""
-        accin = create_account(nombre='Account1', saldo_inicial=1200)
-        accout = create_account(nombre='Account2', saldo_inicial=800)
+        accin = create_account(cod='ai', nombre='Account1', saldo_inicial=1200)
+        accout = create_account(cod='ao', nombre='Account2', saldo_inicial=800)
         mov = create_movement(cuenta_in=accin, cuenta_out=accout, monto=100)
         self.assertIs(accin.movements_out.count(), 0)
 
@@ -1212,8 +1215,8 @@ class AccountModelTest(TestCase):
         """ Acción:     Se genera un movimiento de traspaso
             Chequear:   El movimiento generado debe ir a movements_out en la cuenta
                         de salida"""
-        accin = create_account(nombre='Account1', saldo_inicial=1200)
-        accout = create_account(nombre='Account2', saldo_inicial=800)
+        accin = create_account(cod='ai', nombre='Account1', saldo_inicial=1200)
+        accout = create_account(cod='ao', nombre='Account2', saldo_inicial=800)
         mov = create_movement(cuenta_in=accin, cuenta_out=accout, monto=100)
         self.assertIs(accout.movements_out.count(), 1)
 
@@ -1221,8 +1224,8 @@ class AccountModelTest(TestCase):
         """ Acción:     Se genera un movimiento de traspaso
             Chequear:   El movimiento generado no debe ir a movements_in en la cuenta
                         de salida"""
-        accin = create_account(nombre='Account1', saldo_inicial=1200)
-        accout = create_account(nombre='Account2', saldo_inicial=800)
+        accin = create_account(cod='ai', nombre='Account1', saldo_inicial=1200)
+        accout = create_account(cod='ao', nombre='Account2', saldo_inicial=800)
         mov = create_movement(cuenta_in=accin, cuenta_out=accout, monto=100)
         self.assertIs(accout.movements_in.count(), 0)
 
@@ -1230,7 +1233,7 @@ class AccountModelTest(TestCase):
         """ Acción:     Se genera un movimiento de entrada
             Chequear:   El movimiento generado debe sumarse al saldo de la cuenta
                         de entrada"""
-        acc = create_account(nombre='Account', saldo_inicial=1200)
+        acc = create_account(cod='act', nombre='Account', saldo_inicial=1200)
         mov = create_movement(cuenta_in=acc, monto=100)
         self.assertEqual(acc.balance, 1300)
 
@@ -1238,7 +1241,7 @@ class AccountModelTest(TestCase):
         """ Acción:     Se genera un movimiento de salida
             Chequear:   El movimiento generado debe restarse del saldo de la cuenta
                         de salida"""
-        acc = create_account(nombre='Account', saldo_inicial=1200)
+        acc = create_account(cod='act', nombre='Account', saldo_inicial=1200)
         mov = create_movement(cuenta_out=acc, monto=100)
         self.assertEqual(acc.balance, 1100)
 
@@ -1246,8 +1249,8 @@ class AccountModelTest(TestCase):
         """ Acción:     Se genera un movimiento de traspaso
             Chequear:   El movimiento generado debe sumarse al saldo de la cuenta
                         de entrada"""
-        accin = create_account(nombre='Account1', saldo_inicial=1200)
-        accout = create_account(nombre='Account2', saldo_inicial=800)
+        accin = create_account(cod='ai', nombre='Account1', saldo_inicial=1200)
+        accout = create_account(cod='ao', nombre='Account2', saldo_inicial=800)
         mov = create_movement(cuenta_in=accin, cuenta_out=accout, monto=100)
         self.assertEqual(accin.balance, 1300)
 
@@ -1255,8 +1258,8 @@ class AccountModelTest(TestCase):
         """ Acción:     Se genera un movimiento de traspaso
             Chequear:   El movimiento generado debe restarse del saldo de la cuenta
                         de salida"""
-        accin = create_account(nombre='Account1', saldo_inicial=1200)
-        accout = create_account(nombre='Account2', saldo_inicial=800)
+        accin = create_account(cod='ai', nombre='Account1', saldo_inicial=1200)
+        accout = create_account(cod='ao', nombre='Account2', saldo_inicial=800)
         mov = create_movement(cuenta_in=accin, cuenta_out=accout, monto=100)
         self.assertEqual(accout.balance, 700)
 
@@ -1264,7 +1267,7 @@ class AccountModelTest(TestCase):
         """ Acción:     Se genera un movimiento de entrada
             Chequear:   El saldo de la cuenta de entrada debe almacenarse en el
                         saldo previo"""
-        acc = create_account(nombre='Account', saldo_inicial=1400)
+        acc = create_account(cod='act', nombre='Account', saldo_inicial=1400)
         saldo = acc.balance
         mov = create_movement(cuenta_in=acc, monto=100)
         self.assertEqual(acc.balance_previous, saldo)
@@ -1273,7 +1276,7 @@ class AccountModelTest(TestCase):
         """ Acción:     Se genera un movimiento de salida
             Chequear:   El saldo de la cuenta de salida debe almacenarse en el
                         saldo previo"""
-        acc = create_account(nombre='Account', saldo_inicial=1400)
+        acc = create_account(cod='act', nombre='Account', saldo_inicial=1400)
         saldo = acc.balance
         mov = create_movement(cuenta_out=acc, monto=100)
         self.assertEqual(acc.balance_previous, saldo)
@@ -1282,8 +1285,8 @@ class AccountModelTest(TestCase):
         """ Acción:     Se genera un movimiento de traspaso
             Chequear:   El saldo de la cuenta de entrada debe almacenarse en el
                         saldo previo"""
-        accin = create_account(nombre='Account1', saldo_inicial=1400)
-        accout = create_account(nombre='Account2', saldo_inicial=1900)
+        accin = create_account(cod='ai', nombre='Account1', saldo_inicial=1400)
+        accout = create_account(cod='ao', nombre='Account2', saldo_inicial=1900)
         saldo = accin.balance
         mov = create_movement(cuenta_in=accin, cuenta_out=accout, monto=100)
         self.assertEqual(accin.balance_previous, saldo)
@@ -1292,8 +1295,8 @@ class AccountModelTest(TestCase):
         """ Acción:     Se genera un movimiento de traspaso
             Chequear:   El saldo de la cuenta de salida debe almacenarse en el
                         saldo previo"""
-        accin = create_account(nombre='Account1', saldo_inicial=1400)
-        accout = create_account(nombre='Account2', saldo_inicial=1900)
+        accin = create_account(cod='ai', nombre='Account1', saldo_inicial=1400)
+        accout = create_account(cod='ao', nombre='Account2', saldo_inicial=1900)
         saldo = accout.balance
         mov = create_movement(cuenta_in=accin, cuenta_out=accout, monto=100)
         self.assertEqual(accout.balance_previous, saldo)
@@ -1303,7 +1306,7 @@ class AccountModelTest(TestCase):
                         una cuenta 
             Chequear:   El movimiento eliminado debe retirarse de la lista
                         movements_in de la cuenta"""
-        acc = create_account(nombre='Account', saldo_inicial=23400)
+        acc = create_account(cod='act', nombre='Account', saldo_inicial=23400)
         mov = create_movement(cuenta_in=acc, monto=1500)
         mov.delete()
         self.assertNotIn(mov, acc.movements_in.all())
@@ -1313,7 +1316,7 @@ class AccountModelTest(TestCase):
                         una cuenta 
             Chequear:   El movimiento eliminado debe retirarse de la lista
                         movements_out de la cuenta"""
-        acc = create_account(nombre='Account', saldo_inicial=23400)
+        acc = create_account(cod='act', nombre='Account', saldo_inicial=23400)
         mov = create_movement(cuenta_out=acc, monto=1500)
         mov.delete()
         self.assertNotIn(mov, acc.movements_out.all())
@@ -1323,7 +1326,7 @@ class AccountModelTest(TestCase):
                         una cuenta 
             Chequear:   El monto del movimiento eliminado debe restarse del saldo 
                         de la cuenta"""
-        acc = create_account(nombre='Account', saldo_inicial=23400)
+        acc = create_account(cod='act', nombre='Account', saldo_inicial=23400)
         mov = create_movement(cuenta_in=acc, monto=1500)
         mov.delete()
         self.assertEqual(acc.balance, 23400)
@@ -1333,7 +1336,7 @@ class AccountModelTest(TestCase):
                         una cuenta 
             Chequear:   El monto del movimiento eliminado debe sumarse al saldo 
                         de la cuenta"""
-        acc = create_account(nombre='Account', saldo_inicial=23400)
+        acc = create_account(cod='act', nombre='Account', saldo_inicial=23400)
         mov = create_movement(cuenta_out=acc, monto=1500)
         mov.delete()
         self.assertEqual(acc.balance, 23400)
@@ -1343,8 +1346,8 @@ class AccountModelTest(TestCase):
                         cuenta de entrada
             Chequear:   El movimiento eliminado debe restarse del saldo 
                         de la cuenta"""
-        accin = create_account(nombre='Account_in', saldo_inicial=25500)
-        accout = create_account(nombre='Account_out', saldo_inicial=34200)
+        accin = create_account(cod='ai', nombre='Account_in', saldo_inicial=25500)
+        accout = create_account(cod='ao', nombre='Account_out', saldo_inicial=34200)
         mov = create_movement(cuenta_in=accin, cuenta_out=accout, monto=2300)
         mov.delete()
         self.assertEqual(accin.balance, 25500)
@@ -1354,8 +1357,8 @@ class AccountModelTest(TestCase):
                         cuenta de entrada
             Chequear:   El movimiento eliminado debe sumarse al saldo 
                         de la cuenta"""
-        accin = create_account(nombre='Account_in', saldo_inicial=25500)
-        accout = create_account(nombre='Account_out', saldo_inicial=34200)
+        accin = create_account(cod='ai', nombre='Account_in', saldo_inicial=25500)
+        accout = create_account(cod='ao', nombre='Account_out', saldo_inicial=34200)
         mov = create_movement(cuenta_in=accin, cuenta_out=accout, monto=2300)
         mov.delete()
         self.assertEqual(accout.balance, 34200)
@@ -1367,7 +1370,7 @@ class AccountModelTest(TestCase):
                         saldo anterior a la modificación 
                         más el monto anterior del movimiento 
                         menos el monto nuevo"""
-        acc = create_account(nombre='Account', saldo_inicial=23400)
+        acc = create_account(cod='act', nombre='Account', saldo_inicial=23400)
         mov = create_movement(cuenta_out=acc, monto=1500)
         balance = acc.balance
         mov.amount = 2000
@@ -1381,7 +1384,7 @@ class AccountModelTest(TestCase):
                         saldo anterior a la modificación 
                         menos el monto anterior del movimiento 
                         más el monto nuevo"""
-        acc = create_account(nombre='Account', saldo_inicial=23400)
+        acc = create_account(cod='act', nombre='Account', saldo_inicial=23400)
         mov = create_movement(cuenta_in=acc, monto=1500)
 
         balance = acc.balance
@@ -1399,8 +1402,8 @@ class AccountModelTest(TestCase):
                         saldo anterior a la modificación 
                         menos el monto anterior del movimiento 
                         más el monto nuevo"""
-        accin = create_account(nombre='Account_in', saldo_inicial=23400)
-        accout = create_account(nombre='Account_out', saldo_inicial=34500)
+        accin = create_account(cod='ai', nombre='Account_in', saldo_inicial=23400)
+        accout = create_account(cod='ao', nombre='Account_out', saldo_inicial=34500)
         mov = create_movement(cuenta_in=accin, cuenta_out=accout, monto=1500)
         balance = accin.balance
         mov.amount = 2000
@@ -1414,8 +1417,8 @@ class AccountModelTest(TestCase):
                         saldo anterior a la modificación 
                         más el monto anterior del movimiento 
                         menos el monto nuevo"""
-        accin = create_account(nombre='Account_in', saldo_inicial=23400)
-        accout = create_account(nombre='Account_out', saldo_inicial=34500)
+        accin = create_account(cod='ai', nombre='Account_in', saldo_inicial=23400)
+        accout = create_account(cod='ao', nombre='Account_out', saldo_inicial=34500)
         mov = create_movement(cuenta_in=accin, cuenta_out=accout, monto=1500)
         balance = accout.balance
         mov.amount = 2000
@@ -1426,9 +1429,9 @@ class AccountModelTest(TestCase):
         """ Acción:     En un movimiento de entrada se cambia la cuenta de entrada
             Chequear:   Monto del movimiento se resta del saldo de la vieja cuenta 
                         de entrada"""
-        accold = create_account(nombre='Account_in', saldo_inicial=25500)
+        accold = create_account(cod='ao', nombre='Account_in', saldo_inicial=25500)
         balorig = accold.balance
-        accnew = create_account(nombre='Account_new_in', saldo_inicial=34200)
+        accnew = create_account(cod='an', nombre='Account_new_in', saldo_inicial=34200)
         mov = create_movement(cuenta_in=accold, monto=1500)
         balance = mov.account_in.balance
         mount = mov.amount
@@ -1442,8 +1445,8 @@ class AccountModelTest(TestCase):
         """ Acción:   En un movimiento de entrada se cambia la cuenta de entrada
             Chequear:   Monto del movimiento se suma al saldo de la nueva cuenta 
                         de entrada"""
-        accold = create_account(nombre='Account_in', saldo_inicial=25500)
-        accnew = create_account(nombre='Account_new_in',
+        accold = create_account(cod='ao', nombre='Account_in', saldo_inicial=25500)
+        accnew = create_account(cod='an', nombre='Account_new_in',
                                 saldo_inicial=34200)
         mov = create_movement(cuenta_in=accold, monto=1500)
         mov.account_in = accnew
@@ -1454,9 +1457,9 @@ class AccountModelTest(TestCase):
         """ Acción:     En un movimiento de salida se cambia la cuenta de salida
             Chequear:   Monto del movimiento se suma al saldo de la vieja cuenta 
                         de salida"""
-        accold = create_account(nombre='Account_out', saldo_inicial=25500)
+        accold = create_account(cod='ao', nombre='Account_out', saldo_inicial=25500)
         balorig = accold.balance
-        accnew = create_account(nombre='Account_new_out',
+        accnew = create_account(cod='an', nombre='Account_new_out',
                                 saldo_inicial=34200)
         mov = create_movement(cuenta_out=accold, monto=1500)
 
@@ -1472,8 +1475,8 @@ class AccountModelTest(TestCase):
         """ Acción:     En un movimiento de salida se cambia la cuenta de salida
             Chequear:   Monto del movimiento se resta del saldo de la nueva cuenta 
                         de salida"""
-        accold = create_account(nombre='Account_out', saldo_inicial=25500)
-        accnew = create_account(nombre='Account_new_out',
+        accold = create_account(cod='ao', nombre='Account_out', saldo_inicial=25500)
+        accnew = create_account(cod='an', nombre='Account_new_out',
                                 saldo_inicial=34200)
         balorig = accnew.balance
         mov = create_movement(cuenta_out=accold, monto=1500)
@@ -1487,10 +1490,10 @@ class AccountModelTest(TestCase):
         """ Acción:     En un movimiento de traspaso cambia la cuenta de entrada
             Chequear:   Monto del movimiento se resta del saldo de la vieja 
                         cuenta de entrada"""
-        accinold = create_account(nombre='Account_in', saldo_inicial=25500)
+        accinold = create_account(cod='aio', nombre='Account_in', saldo_inicial=25500)
         accinoldbal = accinold.balance
-        accout = create_account(nombre='Account_out', saldo_inicial=34200)
-        accinnew = create_account(nombre='Account_another',
+        accout = create_account(cod='ao', nombre='Account_out', saldo_inicial=34200)
+        accinnew = create_account(cod='ain', nombre='Account_another',
                                   saldo_inicial=50200)
         mov = create_movement(cuenta_in=accinold, cuenta_out=accout,
                               monto=2300)
@@ -1505,9 +1508,9 @@ class AccountModelTest(TestCase):
         """ Acción:     En un movimiento de traspaso cambia la cuenta de entrada
             Chequear:   Monto del movimiento se suma al saldo de la nueva cuenta 
                         de entrada"""
-        accin = create_account(nombre='Account_in', saldo_inicial=25500)
-        accout = create_account(nombre='Account_out', saldo_inicial=34200)
-        accotra = create_account(nombre='Account_another', saldo_inicial=40200)
+        accin = create_account(cod='ai', nombre='Account_in', saldo_inicial=25500)
+        accout = create_account(cod='ao', nombre='Account_out', saldo_inicial=34200)
+        accotra = create_account(cod='aot', nombre='Account_another', saldo_inicial=40200)
         mov = create_movement(cuenta_in=accin, cuenta_out=accout, monto=2300)
         mov.account_in = accotra
         mov.save()
@@ -1517,11 +1520,11 @@ class AccountModelTest(TestCase):
         """ Acción:     En un movimiento de traspaso cambia la cuenta de salida
             Chequear:   Monto del movimiento se suma al saldo de la vieja cuenta 
                         de salida"""
-        accin = create_account(nombre='Account_in', saldo_inicial=25500)
-        accoutold = create_account(nombre='Account_out',
+        accin = create_account(cod='ai', nombre='Account_in', saldo_inicial=25500)
+        accoutold = create_account(cod='aoo', nombre='Account_out',
                                    saldo_inicial=34200)
         baloutold = accoutold.balance
-        accoutnew = create_account(nombre='Account_out_new',
+        accoutnew = create_account(cod='aon', nombre='Account_out_new',
                                    saldo_inicial=50200)
         mov = create_movement(cuenta_in=accin, cuenta_out=accoutold,
                               monto=2300)
@@ -1537,9 +1540,9 @@ class AccountModelTest(TestCase):
         """ Acción:     En un movimiento de traspaso cambia la cuenta de salida
             Chequear:   Monto del movimiento se resta del saldo de la nueva cuenta 
                         de salida"""
-        accin = create_account(nombre='Account_in', saldo_inicial=25500)
-        accout = create_account(nombre='Account_out', saldo_inicial=34200)
-        accotra = create_account(nombre='Account_another', saldo_inicial=50200)
+        accin = create_account(cod='ai', nombre='Account_in', saldo_inicial=25500)
+        accout = create_account(cod='ao', nombre='Account_out', saldo_inicial=34200)
+        accotra = create_account(cod='aa', nombre='Account_another', saldo_inicial=50200)
         mov = create_movement(cuenta_in=accin, cuenta_out=accout, monto=2300)
         mov.account_out = accotra
         mov.save()
@@ -1549,8 +1552,8 @@ class AccountModelTest(TestCase):
         """ Acción:    En un movimiento de entrada cambia la cuenta de entrada
             Chequear:  El movimiento debe eliminarse de movements_in en la vieja
                        cuenta de entrada"""
-        accold = create_account(nombre='Account_old', saldo_inicial=34500)
-        accnew = create_account(nombre='Account_new', saldo_inicial=55880)
+        accold = create_account(cod='ao', nombre='Account_old', saldo_inicial=34500)
+        accnew = create_account(cod='an', nombre='Account_new', saldo_inicial=55880)
         mov = create_movement(cuenta_in=accold, monto=3450)
         mov.account_in = accnew
         mov.save()
@@ -1560,8 +1563,8 @@ class AccountModelTest(TestCase):
         """ Acción:    En un movimiento de entrada cambia la cuenta de entrada
             Chequear:  El movimiento debe agregarse a movements_in en la nueva
                        cuenta de entrada"""
-        accold = create_account(nombre='Account_old', saldo_inicial=34500)
-        accnew = create_account(nombre='Account_new', saldo_inicial=55880)
+        accold = create_account(cod='ao', nombre='Account_old', saldo_inicial=34500)
+        accnew = create_account(cod='an', nombre='Account_new', saldo_inicial=55880)
         mov = create_movement(cuenta_in=accold, monto=3450)
         mov.account_in = accnew
         mov.save()
@@ -1571,8 +1574,8 @@ class AccountModelTest(TestCase):
         """ Acción:    En un movimiento de salida cambia la cuenta de salida
             Chequear:  El movimiento debe eliminarse de movements_out en la vieja
                        cuenta de salida"""
-        accold = create_account(nombre='Account_old', saldo_inicial=34500)
-        accnew = create_account(nombre='Account_new', saldo_inicial=55880)
+        accold = create_account(cod='ao', nombre='Account_old', saldo_inicial=34500)
+        accnew = create_account(cod='an', nombre='Account_new', saldo_inicial=55880)
         mov = create_movement(cuenta_out=accold, monto=3450)
         mov.account_out = accnew
         mov.save()
@@ -1582,8 +1585,8 @@ class AccountModelTest(TestCase):
         """ Acción:    En un movimiento de salida cambia la cuenta de salida
             Chequear:  El movimiento debe agregarse a movements_out en la nueva
                        cuenta de salida"""
-        accold = create_account(nombre='Account_old', saldo_inicial=34500)
-        accnew = create_account(nombre='Account_new', saldo_inicial=55880)
+        accold = create_account(cod='ao', nombre='Account_old', saldo_inicial=34500)
+        accnew = create_account(cod='an', nombre='Account_new', saldo_inicial=55880)
         mov = create_movement(cuenta_out=accold, monto=3450)
         mov.account_out = accnew
         mov.save()
@@ -1593,9 +1596,9 @@ class AccountModelTest(TestCase):
         """ Acción:    En un movimiento de traspaso cambia la cuenta de entrada
             Chequear:  El movimiento debe eliminarse de movements_in en la vieja
                        cuenta de entrada"""
-        accin = create_account(nombre='Account_in', saldo_inicial=25500)
-        accout = create_account(nombre='Account_out', saldo_inicial=34200)
-        accnew = create_account(nombre='Account_another', saldo_inicial=50200)
+        accin = create_account(cod='ai', nombre='Account_in', saldo_inicial=25500)
+        accout = create_account(cod='ao', nombre='Account_out', saldo_inicial=34200)
+        accnew = create_account(cod='an', nombre='Account_another', saldo_inicial=50200)
         mov = create_movement(cuenta_in=accin, cuenta_out=accout, monto=2300)
         mov.account_in = accnew
         mov.save()
@@ -1605,9 +1608,9 @@ class AccountModelTest(TestCase):
         """ Acción:    En un movimiento de traspaso cambia la cuenta de entrada
             Chequear:  El movimiento debe agregarse a movements_in en la nueva
                        cuenta de entrada"""
-        accin = create_account(nombre='Account_in', saldo_inicial=25500)
-        accout = create_account(nombre='Account_out', saldo_inicial=34200)
-        accnew = create_account(nombre='Account_another', saldo_inicial=50200)
+        accin = create_account(cod='ai', nombre='Account_in', saldo_inicial=25500)
+        accout = create_account(cod='ao', nombre='Account_out', saldo_inicial=34200)
+        accnew = create_account(cod='an', nombre='Account_another', saldo_inicial=50200)
         mov = create_movement(cuenta_in=accin, cuenta_out=accout, monto=2300)
         mov.account_in = accnew
         mov.save()
@@ -1617,9 +1620,9 @@ class AccountModelTest(TestCase):
         """ Acción:    En un movimiento de traspaso cambia la cuenta de salida
             Chequear:  El movimiento debe eliminarse de movements_out en la vieja
                        cuenta de salida"""
-        accin = create_account(nombre='Account_in', saldo_inicial=25500)
-        accout = create_account(nombre='Account_out', saldo_inicial=34200)
-        accnew = create_account(nombre='Account_another', saldo_inicial=50200)
+        accin = create_account(cod='ai', nombre='Account_in', saldo_inicial=25500)
+        accout = create_account(cod='ao', nombre='Account_out', saldo_inicial=34200)
+        accnew = create_account(cod='an', nombre='Account_another', saldo_inicial=50200)
         mov = create_movement(cuenta_in=accin, cuenta_out=accout, monto=2300)
         mov.account_out = accnew
         mov.save()
@@ -1629,9 +1632,9 @@ class AccountModelTest(TestCase):
         """ Acción:    En un movimiento de traspaso cambia la cuenta de salida
             Chequear:  El movimiento debe agregarse a movements_out en la nueva
                        cuenta de salida"""
-        accin = create_account(nombre='Account_in', saldo_inicial=25500)
-        accout = create_account(nombre='Account_out', saldo_inicial=34200)
-        accnew = create_account(nombre='Account_another', saldo_inicial=50200)
+        accin = create_account(cod='ai', nombre='Account_in', saldo_inicial=25500)
+        accout = create_account(cod='ao', nombre='Account_out', saldo_inicial=34200)
+        accnew = create_account(cod='an', nombre='Account_another', saldo_inicial=50200)
         mov = create_movement(cuenta_in=accin, cuenta_out=accout, monto=2300)
         mov.account_out = accnew
         mov.save()
@@ -1641,7 +1644,7 @@ class AccountModelTest(TestCase):
         """ Acción:    La cuenta de entrada se convierte en cuenta de salida
             Chequear:  El movimiento debe eliminarse de los movimientos de entrada
                        de la cuenta"""
-        acc = create_account(nombre='Account', saldo_inicial=25000)
+        acc = create_account(cod='act', nombre='Account', saldo_inicial=25000)
         mov = create_movement(cuenta_in=acc, monto=3322)
         mov.account_out = mov.account_in
         mov.account_in = None
@@ -1652,7 +1655,7 @@ class AccountModelTest(TestCase):
         """ Acción:    La cuenta de entrada se convierte en cuenta de salida
             Chequear:  El movimiento debe agregarse a los movimientos de salida
                        de la cuenta"""
-        acc = create_account(nombre='Account', saldo_inicial=25000)
+        acc = create_account(cod='act', nombre='Account', saldo_inicial=25000)
         mov = create_movement(cuenta_in=acc, monto=3322)
         mov.account_out = mov.account_in
         mov.account_in = None
@@ -1664,8 +1667,8 @@ class AccountModelTest(TestCase):
                        de salida diferente
             Chequear:  El movimiento debe eliminarse de los movimientos
                        de la vieja cuenta de entrada"""
-        accinold = create_account(nombre='Account_in_old', saldo_inicial=22000)
-        accoutnew = create_account(nombre='Account_out_new', saldo_inicial=44222)
+        accinold = create_account(cod='aio', nombre='Account_in_old', saldo_inicial=22000)
+        accoutnew = create_account(cod='aon', nombre='Account_out_new', saldo_inicial=44222)
         mov = create_movement(cuenta_in=accinold, monto=223)
         mov.account_out = accoutnew
         mov.account_in = None
@@ -1677,8 +1680,8 @@ class AccountModelTest(TestCase):
                        de salida diferente
             Chequear:  El movimiento debe agregarse a los movimientos
                        de la nueva cuenta de salida"""
-        accinold = create_account(nombre='Account_in_old', saldo_inicial=22000)
-        accoutnew = create_account(nombre='Account_out_new', saldo_inicial=44222)
+        accinold = create_account(cod='aio', nombre='Account_in_old', saldo_inicial=22000)
+        accoutnew = create_account(cod='aon', nombre='Account_out_new', saldo_inicial=44222)
         mov = create_movement(cuenta_in=accinold, monto=223)
         mov.account_out = accoutnew
         mov.account_in = None
@@ -1689,7 +1692,7 @@ class AccountModelTest(TestCase):
         """ Acción:    La cuenta de salida se convierte en cuenta de entrada
             Chequear:  El movimiento debe eliminarse de los movimientos de salida
                        de la cuenta"""
-        acc = create_account(nombre='Account', saldo_inicial=25000)
+        acc = create_account(cod='act', nombre='Account', saldo_inicial=25000)
         mov = create_movement(cuenta_out=acc, monto=3322)
         mov.account_in = mov.account_out
         mov.account_out = None
@@ -1700,7 +1703,7 @@ class AccountModelTest(TestCase):
         """ Acción:    La cuenta de salida se convierte en cuenta de entrada
             Chequear:  El movimiento debe agregarse a los movimientos de entrada
                        de la cuenta"""
-        acc = create_account(nombre='Account', saldo_inicial=25000)
+        acc = create_account(cod='act', nombre='Account', saldo_inicial=25000)
         mov = create_movement(cuenta_out=acc, monto=3322)
         mov.account_in = mov.account_out
         mov.account_out = None
@@ -1712,8 +1715,8 @@ class AccountModelTest(TestCase):
                        de entrada diferente
             Chequear:  El movimiento debe eliminarse de los movimientos
                        de la vieja cuenta de salida"""
-        accoutold = create_account(nombre='Account_in_old', saldo_inicial=22000)
-        accinnew = create_account(nombre='Account_out_new', saldo_inicial=44222)
+        accoutold = create_account(cod='aoo', nombre='Account_in_old', saldo_inicial=22000)
+        accinnew = create_account(cod='ain', nombre='Account_out_new', saldo_inicial=44222)
         mov = create_movement(cuenta_out=accoutold, monto=223)
         mov.account_in = accinnew
         mov.account_out = None
@@ -1725,8 +1728,8 @@ class AccountModelTest(TestCase):
                        de entrada diferente
             Chequear:  El movimiento debe agregarse a los movimientos
                        de la nueva cuenta de entrada"""
-        accoutold = create_account(nombre='Account_in_old', saldo_inicial=22000)
-        accinnew = create_account(nombre='Account_out_new', saldo_inicial=44222)
+        accoutold = create_account(cod='aoo', nombre='Account_in_old', saldo_inicial=22000)
+        accinnew = create_account(cod='ain', nombre='Account_out_new', saldo_inicial=44222)
         mov = create_movement(cuenta_out=accoutold, monto=223)
         mov.account_in = accinnew
         mov.account_out = None
@@ -1738,8 +1741,8 @@ class AccountModelTest(TestCase):
                         de traspaso.
             Chequear:   El movimiento debe agregarse a los movimientos
                         de la nueva cuenta de entrada"""
-        accinnew = create_account(nombre='Account_in_new', saldo_inicial=34555)
-        accout = create_account(nombre='Account_out', saldo_inicial=55444)
+        accinnew = create_account(cod='ain', nombre='Account_in_new', saldo_inicial=34555)
+        accout = create_account(cod='ao', nombre='Account_out', saldo_inicial=55444)
         mov = create_movement(cuenta_out=accout, monto=5534)
         mov.account_in = accinnew
         mov.save()
@@ -1750,8 +1753,8 @@ class AccountModelTest(TestCase):
                         de traspaso.
             Chequear:   El movimiento debe agregarse a los movimientos
                         de la nueva cuenta de salida"""
-        accin = create_account(nombre='Account_in', saldo_inicial=34555)
-        accoutnew = create_account(nombre='Account_out_new', saldo_inicial=55444)
+        accin = create_account(cod='ai', nombre='Account_in', saldo_inicial=34555)
+        accoutnew = create_account(cod='aon', nombre='Account_out_new', saldo_inicial=55444)
         mov = create_movement(cuenta_in=accin, monto=5534)
         mov.account_out = accoutnew
         mov.save()
@@ -1762,8 +1765,8 @@ class AccountModelTest(TestCase):
                         de salida.
             Chequear:   El movimiento debe eliminarse de los movimientos
                         de la vieja cuenta de entrada"""
-        accin = create_account(nombre='Account_in', saldo_inicial=34555)
-        accout = create_account(nombre='Account_out', saldo_inicial=55444)
+        accin = create_account(cod='ai', nombre='Account_in', saldo_inicial=34555)
+        accout = create_account(cod='ao', nombre='Account_out', saldo_inicial=55444)
         mov = create_movement(cuenta_in=accin, cuenta_out=accout, monto=5534)
         mov.account_in = None
         mov.save()
@@ -1774,8 +1777,8 @@ class AccountModelTest(TestCase):
                         de entrada.
             Chequear:   El movimiento debe eliminarse de los movimientos
                         de la vieja cuenta de salida"""
-        accin = create_account(nombre='Account_in', saldo_inicial=34555)
-        accout = create_account(nombre='Account_out', saldo_inicial=55444)
+        accin = create_account(cod='ai', nombre='Account_in', saldo_inicial=34555)
+        accout = create_account(cod='ao', nombre='Account_out', saldo_inicial=55444)
         mov = create_movement(cuenta_in=accin, cuenta_out=accout, monto=5534)
         mov.account_out = None
         mov.save()
@@ -1787,8 +1790,8 @@ class AccountModelTest(TestCase):
                        entrada y la de salida
             Chequear:  El movimiento debe eliminarse de los movimientos de entrada 
                        de la vieja cuenta de entrada."""
-        acc1 = create_account(nombre='Account_1', saldo_inicial=22444)
-        acc2 = create_account(nombre='Account_2', saldo_inicial=35553)
+        acc1 = create_account(cod='ac1', nombre='Account_1', saldo_inicial=22444)
+        acc2 = create_account(cod='ac2', nombre='Account_2', saldo_inicial=35553)
         mov = create_movement(cuenta_in=acc1, cuenta_out=acc2, monto=3355)
         acc = mov.account_in
         mov.account_in = mov.account_out
@@ -1801,8 +1804,8 @@ class AccountModelTest(TestCase):
                        entrada y la de salida
             Chequear:  El movimiento debe agregarse a los movimientos de salida 
                        de la vieja cuenta de entrada."""
-        acc1 = create_account(nombre='Account_1', saldo_inicial=22444)
-        acc2 = create_account(nombre='Account_2', saldo_inicial=35553)
+        acc1 = create_account(cod='a1', nombre='Account_1', saldo_inicial=22444)
+        acc2 = create_account(cod='a2', nombre='Account_2', saldo_inicial=35553)
         mov = create_movement(cuenta_in=acc1, cuenta_out=acc2, monto=3355)
         acc = mov.account_in
         mov.account_in = mov.account_out
@@ -1815,8 +1818,8 @@ class AccountModelTest(TestCase):
                        entrada y la de salida
             Chequear:  El movimiento debe eliminarse de los movimientos de salida 
                        de la vieja cuenta de salida."""
-        acc1 = create_account(nombre='Account_1', saldo_inicial=22444)
-        acc2 = create_account(nombre='Account_2', saldo_inicial=35553)
+        acc1 = create_account(cod='ac1', nombre='Account_1', saldo_inicial=22444)
+        acc2 = create_account(cod='ac2', nombre='Account_2', saldo_inicial=35553)
         mov = create_movement(cuenta_in=acc1, cuenta_out=acc2, monto=3355)
         acc = mov.account_in
         mov.account_in = mov.account_out
@@ -1829,8 +1832,8 @@ class AccountModelTest(TestCase):
                        entrada y la de salida
             Chequear:  El movimiento debe agregarse a los movimientos de entrada 
                        de la vieja cuenta de salida."""
-        acc1 = create_account(nombre='Account_1', saldo_inicial=22444)
-        acc2 = create_account(nombre='Account_2', saldo_inicial=35553)
+        acc1 = create_account(cod='ac1', nombre='Account_1', saldo_inicial=22444)
+        acc2 = create_account(cod='ac2', nombre='Account_2', saldo_inicial=35553)
         mov = create_movement(cuenta_in=acc1, cuenta_out=acc2, monto=3355)
         acc = mov.account_in
         mov.account_in = mov.account_out
@@ -1844,9 +1847,9 @@ class AccountModelTest(TestCase):
                        cuenta nueva.
             Chequear:  El movimiento debe eliminarse los movimientos de entrada 
                        de la cuenta que ahora es de salida."""
-        accinold = create_account(nombre='Account_in_old', saldo_inicial=22444)
-        accoutold = create_account(nombre='Account_out_old', saldo_inicial=35553)
-        accinnew = create_account(nombre='Account_in_new', saldo_inicial=87409)
+        accinold = create_account(cod='aio', nombre='Account_in_old', saldo_inicial=22444)
+        accoutold = create_account(cod='aoo', nombre='Account_out_old', saldo_inicial=35553)
+        accinnew = create_account(cod='ain', nombre='Account_in_new', saldo_inicial=87409)
         mov = create_movement(cuenta_in=accinold, cuenta_out=accoutold, monto=234)
 
         mov.account_out = mov.account_in
@@ -1861,9 +1864,9 @@ class AccountModelTest(TestCase):
                        cuenta nueva.
             Chequear:  El movimiento debe agregarse a los movimientos de salida 
                        de la cuenta que ahora es de salida."""
-        accinold = create_account(nombre='Account_in_old', saldo_inicial=22444)
-        accoutold = create_account(nombre='Account_out_old', saldo_inicial=35553)
-        accinnew = create_account(nombre='Account_in_new', saldo_inicial=87409)
+        accinold = create_account(cod='aio', nombre='Account_in_old', saldo_inicial=22444)
+        accoutold = create_account(cod='aoo', nombre='Account_out_old', saldo_inicial=35553)
+        accinnew = create_account(cod='ain', nombre='Account_in_new', saldo_inicial=87409)
         mov = create_movement(cuenta_in=accinold, cuenta_out=accoutold, monto=234)
 
         mov.account_out = mov.account_in
@@ -1878,9 +1881,9 @@ class AccountModelTest(TestCase):
                        cuenta nueva.
             Chequear:  El movimiento debe agregarse a los movimientos de entrada 
                        de la nueva cuenta de entrada."""
-        accinold = create_account(nombre='Account_in_old', saldo_inicial=22444)
-        accoutold = create_account(nombre='Account_out_old', saldo_inicial=35553)
-        accinnew = create_account(nombre='Account_in_new', saldo_inicial=87409)
+        accinold = create_account(cod='aio', nombre='Account_in_old', saldo_inicial=22444)
+        accoutold = create_account(cod='aoo', nombre='Account_out_old', saldo_inicial=35553)
+        accinnew = create_account(cod='ain', nombre='Account_in_new', saldo_inicial=87409)
         mov = create_movement(cuenta_in=accinold, cuenta_out=accoutold, monto=234)
 
         mov.account_out = mov.account_in
@@ -1895,9 +1898,9 @@ class AccountModelTest(TestCase):
                        cuenta nueva.
             Chequear:  El movimiento debe eliminarse los movimientos de salida 
                        de la cuenta que ahora es de entrada."""
-        accinold = create_account(nombre='Account_in_old', saldo_inicial=22444)
-        accoutold = create_account(nombre='Account_out_old', saldo_inicial=35553)
-        accoutnew = create_account(nombre='Account_in_new', saldo_inicial=87409)
+        accinold = create_account(cod='aio', nombre='Account_in_old', saldo_inicial=22444)
+        accoutold = create_account(cod='aoo', nombre='Account_out_old', saldo_inicial=35553)
+        accoutnew = create_account(cod='aon', nombre='Account_in_new', saldo_inicial=87409)
         mov = create_movement(cuenta_in=accinold, cuenta_out=accoutold, monto=234)
 
         mov.account_in = mov.account_out
@@ -1912,9 +1915,9 @@ class AccountModelTest(TestCase):
                        cuenta nueva.
             Chequear:  El movimiento debe agregarse a los movimientos de entrada 
                        de la cuenta que ahora es de entrada."""
-        accinold = create_account(nombre='Account_in_old', saldo_inicial=22444)
-        accoutold = create_account(nombre='Account_out_old', saldo_inicial=35553)
-        accoutnew = create_account(nombre='Account_in_new', saldo_inicial=87409)
+        accinold = create_account(cod='aio', nombre='Account_in_old', saldo_inicial=22444)
+        accoutold = create_account(cod='aoo', nombre='Account_out_old', saldo_inicial=35553)
+        accoutnew = create_account(cod='aon', nombre='Account_in_new', saldo_inicial=87409)
         mov = create_movement(cuenta_in=accinold, cuenta_out=accoutold, monto=234)
 
         mov.account_in = mov.account_out
@@ -1929,9 +1932,9 @@ class AccountModelTest(TestCase):
                        cuenta nueva.
             Chequear:  El movimiento debe agregarse a los movimientos de salida
                        de nueva cuenta de salida."""
-        accinold = create_account(nombre='Account_in_old', saldo_inicial=22444)
-        accoutold = create_account(nombre='Account_out_old', saldo_inicial=35553)
-        accoutnew = create_account(nombre='Account_in_new', saldo_inicial=87409)
+        accinold = create_account(cod='aio', nombre='Account_in_old', saldo_inicial=22444)
+        accoutold = create_account(cod='aoo', nombre='Account_out_old', saldo_inicial=35553)
+        accoutnew = create_account(cod='aon', nombre='Account_in_new', saldo_inicial=87409)
         mov = create_movement(cuenta_in=accinold, cuenta_out=accoutold, monto=234)
 
         mov.account_in = mov.account_out
@@ -1944,8 +1947,8 @@ class AccountModelTest(TestCase):
         """ Comprueba que el saldo final de cada cuenta coincide con el saldo 
             inicial al que se le han aplicado los movimientos
         """
-        accin = create_account(nombre='Account1', saldo_inicial=1400)
-        accout = create_account(nombre='Account2', saldo_inicial=1900)
+        accin = create_account(cod='ai', nombre='Account1', saldo_inicial=1400)
+        accout = create_account(cod='ao', nombre='Account2', saldo_inicial=1900)
         mov1 = create_movement(cuenta_in=accin, monto=220)
         mov2 = create_movement(cuenta_out=accin, monto=500)
         mov3 = create_movement(cuenta_in=accin, cuenta_out=accout, monto=700)
@@ -1965,8 +1968,8 @@ class AccountModelTest(TestCase):
 
         TWOPLACES = decimal.Decimal(10) ** -2
 
-        accin = create_account(nombre='Account1', saldo_inicial=1400)
-        accout = create_account(nombre='Account2', saldo_inicial=1900)
+        accin = create_account(cod='ai', nombre='Account1', saldo_inicial=1400)
+        accout = create_account(cod='ao', nombre='Account2', saldo_inicial=1900)
 
         direction = 0
         for x in range(100):

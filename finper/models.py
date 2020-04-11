@@ -1,12 +1,20 @@
 from django.db import models
+from django.db.models import Sum
 from django.db.models.signals import post_save
 from django.utils import timezone
 from model_utils import FieldTracker
 
 
-class Account(models.Model):
-    name = models.CharField(max_length=20, default='Cuenta')
+def valueorzero(param):
+    if type(param) == type(None):
+        return 0;
+    else:
+        return param
 
+
+class Account(models.Model):
+    codename = models.CharField(max_length=4, unique=True)
+    name = models.CharField(max_length=20, default='Cuenta')
     balance_start = models.DecimalField(max_digits=15,
                                         decimal_places=2,
                                         default=0.0)
@@ -43,6 +51,18 @@ class Account(models.Model):
         instance.balance_previous = 0
         instance.save()
 
+    def check_balance(self):
+        """ A partir del saldo inicial, sumar movimientos de entrada, restar
+            movimientos de salida y comparar con el saldo final.
+            Devolver True si la cuenta coincide, y False si no.
+        """
+        movsum = valueorzero(self.movements_in.aggregate(Sum('amount'))['amount__sum']) - \
+                 valueorzero(self.movements_out.aggregate(Sum('amount'))['amount__sum'])
+        balok = self.balance_start + movsum
+
+        return {'saldoOk': self.balance == balok,
+                'movsum': movsum}
+
 
 post_save.connect(Account.post_create, sender=Account)
 
@@ -68,13 +88,14 @@ def _pkornone(account):
 
 class Movement(models.Model):
     """ Movimiento de dinero (entrada, salida o traspaso)"""
-    date = models.DateField(default=timezone.now)
-    title = models.CharField(max_length=20, default='Movimiento')
-    detail = models.CharField(max_length=30)
-    amount = models.DecimalField(max_digits=15,
+    date = models.DateField('Fecha', default=timezone.now)
+    title = models.CharField('Concepto', max_length=20, default='Movimiento')
+    detail = models.CharField('Detalle', max_length=30)
+    amount = models.DecimalField('Monto',
+                                 max_digits=15,
                                  decimal_places=2,
                                  default=0.0)
-    currency = models.CharField(max_length=3, default='$')
+    currency = models.CharField('Moneda', max_length=3, default='$')
     account_out = models.ForeignKey(Account,
                                     on_delete=models.PROTECT,
                                     related_name='movements_out',
@@ -84,10 +105,12 @@ class Movement(models.Model):
                                    on_delete=models.PROTECT,
                                    related_name='movements_in',
                                    verbose_name='cuenta_de_entrada',
-                                   null=True)
+                                   null=True
+                                   )
     category = models.ForeignKey(Category,
                                  on_delete=models.PROTECT,
-                                 verbose_name='categoría_del_movimiento')
+                                 verbose_name='categoría',
+                                 )
 
     objects = models.Manager()
 

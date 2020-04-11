@@ -1,0 +1,21 @@
+{% extends 'base.html' %}
+{% block title %}Error de saldo{% endblock title %}
+
+{% block content %}
+    <h1>Error de saldo</h1>
+    <p>El saldo de la cuenta presenta un error. La suma del saldo inicial y los movimientos
+    es diferente del saldo final ¿Qué desea hacer?
+    <ul>
+        <li>
+            <a href="{% url 'finper:bal_correc' cta.id %}">
+                Modificar saldo final para que coincida con el cálculo de los movimientos
+            </a>
+        </li>
+        <li>Revisar los movimientos de la cuenta</li>
+        <li>
+            <a href="{% url 'finper:bal_start_correc' cta.id %}">
+                Modificar saldo inicial
+            </a>
+        </li>
+    </ul></p>
+{% endblock content %}

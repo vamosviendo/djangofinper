@@ -1,6 +1,6 @@
 .project
 .pydevproject
-.idea/dictionaries/nando.xml
+.idea/dictionaries/*
 db.sqlite3
 *pycache*
 finper/migrations/*
