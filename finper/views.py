@@ -1,10 +1,10 @@
 from django.db.models import Sum
 from django.http import HttpResponseRedirect
-from django.shortcuts import render
-from django.urls import reverse
+from django.shortcuts import render, redirect
+from django.urls import reverse, reverse_lazy
 from django.views import generic
 
-from .forms import MovementForm, MovementModelForm
+from .forms import MovementForm, MovementModelForm, AccountAddModelForm, AccountModModelForm
 from .models import Account, Movement
 
 
@@ -87,6 +87,58 @@ def add_movement(request):
     )
 
 
+def add_account_model(request):
+    """ Añadir cuenta nueva. Versión basada en ModelForm"""
+    submitted = False
+    if request.method == 'POST':
+        form = AccountAddModelForm(request.POST)
+        if form.is_valid():
+            form.save()
+            return HttpResponseRedirect('/mov_sheet/')
+    else:
+        form = AccountAddModelForm()
+        if 'submitted' in request.GET:
+            submitted = True
+    return render(request,
+                  'finper/add_account.html',
+                  {'title': 'Finanzas Personales - Cuenta nueva - ModelForm',
+                   'form': form,
+                   'submitted': submitted})
+
+
+def update_account(request, pk):
+    acc_id = int(pk)
+
+    try:
+        acc_sel = Account.objects.get(id = acc_id)
+    except Account.DoesNotExist:
+        return HttpResponseRedirect('/mov_sheet/')
+
+    form = AccountModModelForm(request.POST or None, instance=acc_sel)
+
+    if form.is_valid():
+        form.save()
+        return HttpResponseRedirect('/mov_sheet/')
+
+    return render(request,
+                  'finper/add_account.html',
+                  {'title': 'Finanzas Personales - Modificar cuenta - ModelForm',
+                   'form': form,
+                  })
+
+
+def delete_account(request, pk):
+    acc_id = int(pk)
+
+    try:
+        acc_sel = Account.objects.get(id=acc_id)
+    except Account.DoesNotExist:
+        return HttpResponseRedirect('/mov_sheet/')
+
+    acc_sel.delete()
+    return HttpResponseRedirect('/mov_sheet/')
+
+
 def check_balance(request, pk):
     """ Verifica que el saldo de una cuenta sea igual al saldo inicial más
         la suma de sus movimientos de entrada menos la suma de sus movimientos
@@ -164,6 +216,17 @@ class AccListView(generic.ListView):
         return Account.objects.order_by('name')
 
 
+class AccDetailView(generic.DetailView):
+    """ Clase de vista de detalle de cuentas """
+    model = Account
+    template_name = 'finper/acc_detail.html'
+
+
+class AccountDelete(generic.edit.DeleteView):
+    model = Account
+    success_url = reverse_lazy('finper:mov_sheet')
+
+
 class MovListView(generic.ListView):
     """ Clase de vista de lista de movimientos """
     template_name = 'finper/movements.html'
@@ -178,13 +241,9 @@ class MovListView(generic.ListView):
         return Movement.objects.order_by('-date')
 
 
-class AccDetailView(generic.DetailView):
-    """ Clase de vista de detalle de cuentas """
-    model = Account
-    template_name = 'finper/acc_detail.html'
-
-
 class MovDetailView(generic.DetailView):
     """ Clase de vista de detalle de movimientos """
     model = Movement
     template_name = 'finper/mov_detail.html'
+
+

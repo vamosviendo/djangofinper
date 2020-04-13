@@ -14,7 +14,10 @@
               <th>Monto</th>
               <th>Moneda</th>
               {% for cta in accounts_list %}
-                <th>{{ cta.name }}</th>
+                <th>
+                    <a href="{% url 'finper:mod_acc' cta.id %}">{{ cta.name }}</a>
+                    <a href="{% url 'finper:del_acc' cta.id %}">x</a>
+                </th>
               {% endfor %}
               <th>TOTAL</th>
               <th>Categoría</th>
@@ -81,4 +84,5 @@
     <br>
     <a href="{% url 'finper:index' %}">Index</a><br>
     <a href="{% url 'finper:add_movement' %}">Movimiento nuevo</a><br>
+    <a href="{% url 'finper:add_acc' %}">Cuenta nueva</a><br>
 {% endblock content %}

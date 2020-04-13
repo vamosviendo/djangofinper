@@ -2,6 +2,10 @@ body {
     font-family: Verdana, Geneva, Sans-Serif
 }
 
+a {
+    text-decoration: none;
+}
+
 table, td, th {
     border-collapse: collapse;
 }

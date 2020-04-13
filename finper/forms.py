@@ -4,6 +4,7 @@ from django.utils import timezone
 from .models import Movement, Account, Category
 
 
+# Añadir movimiento nuevo
 # ModelForm
 # View: add_movement
 # Template: finper/add_movement.html
@@ -19,6 +20,7 @@ class MovementModelForm(forms.ModelForm):
         fields = '__all__'
 
 
+# Añadir movimiento nuevo
 # Form (no ModelForm)
 # View: add_movement
 # Template: finper/add_movement.html
@@ -38,3 +40,28 @@ class MovementForm(forms.Form):
         required=False,
         label='Cta. de salida')
     category = forms.ModelChoiceField(queryset=Category.objects.all(), label='Categoría')
+
+
+# Añadir cuenta nueva
+# ModelForm
+# View: add_account
+# Template: finper/add_account.html
+# url: add_account
+class AccountAddModelForm(forms.ModelForm):
+
+    class Meta():
+        model = Account
+        fields = '__all__'
+
+
+# Modificar cuenta
+# (No permite modificar saldos, solamente nombres y otros datos)
+# ModelForm
+# View: add_account
+# Template: finper/add_account.html
+# url: add_account
+class AccountModModelForm(forms.ModelForm):
+
+    class Meta():
+        model = Account
+        fields = ['codename', 'name']
