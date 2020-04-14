@@ -1,9 +1,11 @@
+from django.contrib import messages
 from django.db.models import Sum
-from django.http import HttpResponseRedirect
+from django.http import HttpResponseRedirect, HttpResponse
 from django.shortcuts import render, redirect
 from django.urls import reverse, reverse_lazy
 from django.views import generic
 
+from .errors import AccountError
 from .forms import MovementForm, MovementModelForm, AccountAddModelForm, AccountModModelForm
 from .models import Account, Movement
 
@@ -222,6 +224,20 @@ class AccDetailView(generic.DetailView):
     template_name = 'finper/acc_detail.html'
 
 
+class AccountCreate(generic.edit.CreateView):
+    model = Account
+    success_url = reverse_lazy('finper:mov_sheet')
+    titulo = 'cuenta nueva'
+    fields = ['codename', 'name', 'balance_start']
+
+
+class AccountEdit(generic.edit.UpdateView):
+    model = Account
+    success_url = reverse_lazy('finper:mov_sheet')
+    titulo = 'cuenta existente'
+    fields = ['codename', 'name']
+
+
 class AccountDelete(generic.edit.DeleteView):
     model = Account
     success_url = reverse_lazy('finper:mov_sheet')
@@ -247,3 +263,42 @@ class MovDetailView(generic.DetailView):
     template_name = 'finper/mov_detail.html'
 
 
+class MovCreate(generic.edit.CreateView):
+    model = Movement
+    success_url = reverse_lazy('finper:mov_sheet')
+    fields = '__all__'
+
+    def post(self, request, *args, **kwargs):
+        try:
+            return super().post(request, *args, **kwargs)
+        except AccountError:
+            messages.add_message(request, messages.ERROR,
+                                 "Debe seleccionar al menos una cuenta de "
+                                 "entrada o una cuenta de salida"
+                                 )
+            return render(request,
+                          template_name=self.get_template_names(),
+                          context=self.get_context_data())
+
+
+class MovEdit(generic.edit.UpdateView):
+    model = Movement
+    success_url = reverse_lazy('finper:mov_sheet')
+    fields = '__all__'
+
+    def post(self, request, *args, **kwargs):
+        try:
+            return super().post(request, *args, **kwargs)
+        except AccountError:
+            messages.add_message(request, messages.ERROR,
+                                 "Debe seleccionar al menos una cuenta de "
+                                 "entrada o una cuenta de salida"
+                                 )
+            return render(request,
+                          template_name=self.get_template_names(),
+                          context=self.get_context_data())
+
+
+class MovDelete(generic.edit.DeleteView):
+    model = Movement
+    success_url = reverse_lazy('finper:mov_sheet')

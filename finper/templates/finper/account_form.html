@@ -1,0 +1,31 @@
+{% extends 'base.html' %}
+
+{% block title %}
+    {% if account.name %}
+        {{ account.name }}
+    {% else %}
+        Cuenta nueva
+    {% endif %}
+{% endblock title %}
+
+{% block content %}
+    <h1>{% if account.name %}
+            {{ account.name }}
+        {% else %}
+            Cuenta nueva
+        {% endif %}
+    </h1>
+
+    <p> {{ self.titulo }}</p>
+
+    <form action="" method="post" novalidate>
+        <table>
+            {{ form.as_table }}
+            <tr>
+                <td>&nbsp;</td>
+                <td><input type="submit" value="OK"></td>
+            </tr>
+        </table>
+        {% csrf_token %}
+    </form>
+{% endblock content %}

@@ -34,7 +34,7 @@
       {% for mov in movements_list %}
           <tr>
               <td class="date">{{ mov.date }}</td>
-              <td><a href="{% url 'finper:movdetail' mov.id %}">{{ mov.title }}</a></td>
+              <td><a href="{% url 'finper:mod_mov' mov.id %}">{{ mov.title }}</a></td>
               <td>{{ mov.detail }}</td>
               <td class="number">{{ mov.amount }}</td>
               <td>{{ mov.currency }}</td>
@@ -62,6 +62,7 @@
                   {% endif %}
               </td>
               <td>{{ mov.category }}</td>
+              <td><a href="{% url 'finper:del_mov' mov.id %}">x</a></td>
           </tr>
       {% endfor %}
           <tr class="saldos">
@@ -75,7 +76,6 @@
                 </td>
               {% endfor %}
               <td class="number">{{ accounts_sum|floatformat:2 }}</td>
-              <td></td>
           </tr>
       </table>
     {% else %}
