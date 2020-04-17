@@ -31,6 +31,7 @@
               <td class="number">{{ accounts_start_sum|floatformat:2 }}</td>
               <td></td>
           </tr>
+          <form action="" id="seleccion" method="post">
       {% for mov in movements_list %}
           <tr>
               <td class="date">{{ mov.date }}</td>
@@ -63,6 +64,7 @@
               </td>
               <td>{{ mov.category }}</td>
               <td><a href="{% url 'finper:del_mov' mov.id %}">x</a></td>
+              <td><input type="checkbox" name="{{ mov.name }}{{ mov.id }}" value="{{ mov.id }}"></td>
           </tr>
       {% endfor %}
           <tr class="saldos">
@@ -76,6 +78,9 @@
                 </td>
               {% endfor %}
               <td class="number">{{ accounts_sum|floatformat:2 }}</td>
+              <td><input type="submit" value="borrar selecc."></td>
+          {% csrf_token %}
+          </form>
           </tr>
       </table>
     {% else %}
@@ -84,5 +89,5 @@
     <br>
     <a href="{% url 'finper:index' %}">Index</a><br>
     <a href="{% url 'finper:add_movement' %}">Movimiento nuevo</a><br>
-    <a href="{% url 'finper:add_acc' %}">Cuenta nueva</a><br>
+    <a href="{% url 'finper:add_acc' %}">Cuenta nueva</a><br><br>
 {% endblock content %}
