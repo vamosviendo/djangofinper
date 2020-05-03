@@ -1,0 +1,36 @@
+{% extends 'base.html' %}
+
+{% block title %}
+    {% if movement.title %}
+        {{ movement.title }}
+    {% else %}
+        Movimiento nuevo
+    {% endif %}
+{% endblock title %}
+
+{% block content %}
+    <h1>{% if movement.title %}
+            {{ movement.title }}
+        {% else %}
+            Movimiento nuevo
+        {% endif %}
+    </h1>
+
+    <form action="" method="post" novalidate>
+        <table>
+            {{ form.as_table }}
+            <tr>
+                <td>&nbsp;</td>
+                <td><input type="submit" value="OK"></td>
+            </tr>
+        </table>
+        {% csrf_token %}
+    </form>
+
+    {% if messages %}
+        {% for message in messages %}
+        <p>{{ message }}</p>
+        {% endfor %}
+    {% endif %}
+
+{% endblock content %}

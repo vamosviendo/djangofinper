@@ -4,6 +4,8 @@ from django.db.models.signals import post_save
 from django.utils import timezone
 from model_utils import FieldTracker
 
+from .errors import AccountError
+
 
 def valueorzero(param):
     if type(param) == type(None):
@@ -90,7 +92,7 @@ class Movement(models.Model):
     """ Movimiento de dinero (entrada, salida o traspaso)"""
     date = models.DateField('Fecha', default=timezone.now)
     title = models.CharField('Concepto', max_length=20, default='Movimiento')
-    detail = models.CharField('Detalle', max_length=30)
+    detail = models.CharField('Detalle', max_length=30, null=True, blank=True)
     amount = models.DecimalField('Monto',
                                  max_digits=15,
                                  decimal_places=2,
@@ -100,13 +102,14 @@ class Movement(models.Model):
                                     on_delete=models.PROTECT,
                                     related_name='movements_out',
                                     verbose_name='cuenta_de_salida',
-                                    null=True)
+                                    null=True,
+                                    blank=True)
     account_in = models.ForeignKey(Account,
                                    on_delete=models.PROTECT,
                                    related_name='movements_in',
                                    verbose_name='cuenta_de_entrada',
-                                   null=True
-                                   )
+                                   null=True,
+                                   blank=True)
     category = models.ForeignKey(Category,
                                  on_delete=models.PROTECT,
                                  verbose_name='categoría',
@@ -118,10 +121,6 @@ class Movement(models.Model):
 
     class Meta:
         ordering = ['date']
-
-    #     def __init__(self, *args, **kwargs):
-    #         super(Movement, self).__init__(*args, **kwargs)
-    #         self.keeper = None
 
     def __str__(self):
         movstr = f'{self.date} - {self.title} - '
@@ -145,9 +144,9 @@ class Movement(models.Model):
         if self.pk is None:
             if self.account_in is None and self.account_out is None:
                 # Alguna de las dos debe ser distinta de None
-                raise Exception('El movimiento no tiene cuenta de entrada ni de salida.')
+                raise AccountError('El movimiento no tiene cuenta de entrada ni de salida.')
             if self.account_in is not None:
-                # Si es movimientod de entrada, sumar al saldo de account_in
+                # Si es movimiento de entrada, sumar al saldo de account_in
                 self.account_in.balance_previous = self.account_in.balance
                 self.account_in.balance += self.amount
                 self.account_in.save()

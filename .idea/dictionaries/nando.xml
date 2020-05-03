@@ -5,10 +5,13 @@
       <w>acclist</w>
       <w>accountid</w>
       <w>categoria</w>
+      <w>djangofinper</w>
       <w>finper</w>
       <w>movdetail</w>
       <w>movlist</w>
       <w>movs</w>
+      <w>movsheet</w>
+      <w>mult</w>
       <w>oldaccountin</w>
       <w>oldaccountout</w>
       <w>prevaccount</w>

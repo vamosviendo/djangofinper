@@ -1,10 +1,13 @@
+from django.contrib import messages
 from django.db.models import Sum
 from django.http import HttpResponseRedirect
-from django.shortcuts import render, redirect
+from django.shortcuts import render
 from django.urls import reverse, reverse_lazy
 from django.views import generic
 
-from .forms import MovementForm, MovementModelForm, AccountAddModelForm, AccountModModelForm
+from nandotools import debug
+
+from .errors import AccountError
 from .models import Account, Movement
 
 
@@ -13,130 +16,6 @@ def index(request):
     return render(request,
                   'finper/index.html',
                   {'title': 'Finanzas Personales - Página principal'})
-
-
-# Template: finper/mov_sheet.html
-# url: movsheet/
-def movsheet(request):
-    """ Planilla de movimientos.
-        Muestra la plantilla mov_sheet.html, con un detalle de los movimientos,
-        su incidencia en las cuentas y el saldo final de cada cuenta y total. """
-    movements_list = Movement.objects.order_by('date', 'pk')
-    accounts_list = Account.objects.order_by('name')
-    accounts_sums = Account.objects.aggregate(Sum('balance'), Sum('balance_start'))
-    arguments = {
-        'title': 'Finanzas Personales - Planilla de movimientos',
-        'movements_list': movements_list,
-        'accounts_list': accounts_list,
-        'accounts_sum': accounts_sums['balance__sum'],
-        'accounts_start_sum': accounts_sums['balance_start__sum'],
-    }
-    return render(request, 'finper/mov_sheet.html', arguments)
-
-
-def add_movement_model(request):
-    """ Añadir movimiento. Versión basada en ModelForm"""
-    submitted = False
-    if request.method == 'POST':
-        form = MovementModelForm(request.POST)
-        if form.is_valid():
-            form.save()
-            return HttpResponseRedirect('/finper/mov_sheet.html/?submitted=True')
-    else:
-        form = MovementModelForm()
-        if 'submitted' in request.GET:
-            submitted = True
-    return render(request,
-                  'finper/add_movement.html',
-                  {'title': 'Finanzas Personales - Movimiento nuevo - ModelForm',
-                   'form': form,
-                   'submitted': submitted})
-
-
-def add_movement(request):
-    """ Añadir movimiento. Versión basada en formulario de campos individuales. """
-    submitted = False
-    if request.method == 'POST':
-        form = MovementForm(request.POST)
-        if form.is_valid():
-            cd = form.cleaned_data
-            mov = Movement(
-                date=cd['date'],
-                title=cd['title'],
-                detail=cd['detail'],
-                amount=cd['amount'],
-                currency=cd['currency'],
-                account_in=cd['account_in'],
-                account_out=cd['account_out'],
-                category=cd['category']
-            )
-            mov.save()
-            return HttpResponseRedirect('/mov_sheet/')
-    else:
-        form = MovementForm()
-        if 'submitted' in request.GET:
-            submitted = True
-
-    return render(
-        request,
-        'finper/add_movement.html',
-        {'title': 'Finanzas Personales - Movimiento nuevo - No ModelForm',
-         'form': form,
-         'submitted': submitted}
-
-    )
-
-
-def add_account_model(request):
-    """ Añadir cuenta nueva. Versión basada en ModelForm"""
-    submitted = False
-    if request.method == 'POST':
-        form = AccountAddModelForm(request.POST)
-        if form.is_valid():
-            form.save()
-            return HttpResponseRedirect('/mov_sheet/')
-    else:
-        form = AccountAddModelForm()
-        if 'submitted' in request.GET:
-            submitted = True
-    return render(request,
-                  'finper/add_account.html',
-                  {'title': 'Finanzas Personales - Cuenta nueva - ModelForm',
-                   'form': form,
-                   'submitted': submitted})
-
-
-def update_account(request, pk):
-    acc_id = int(pk)
-
-    try:
-        acc_sel = Account.objects.get(id = acc_id)
-    except Account.DoesNotExist:
-        return HttpResponseRedirect('/mov_sheet/')
-
-    form = AccountModModelForm(request.POST or None, instance=acc_sel)
-
-    if form.is_valid():
-        form.save()
-        return HttpResponseRedirect('/mov_sheet/')
-
-    return render(request,
-                  'finper/add_account.html',
-                  {'title': 'Finanzas Personales - Modificar cuenta - ModelForm',
-                   'form': form,
-                  })
-
-
-def delete_account(request, pk):
-    acc_id = int(pk)
-
-    try:
-        acc_sel = Account.objects.get(id=acc_id)
-    except Account.DoesNotExist:
-        return HttpResponseRedirect('/mov_sheet/')
-
-    acc_sel.delete()
-    return HttpResponseRedirect('/mov_sheet/')
 
 
 def check_balance(request, pk):
@@ -222,6 +101,20 @@ class AccDetailView(generic.DetailView):
     template_name = 'finper/acc_detail.html'
 
 
+class AccountCreate(generic.edit.CreateView):
+    model = Account
+    success_url = reverse_lazy('finper:mov_sheet')
+    titulo = 'cuenta nueva'
+    fields = ['codename', 'name', 'balance_start']
+
+
+class AccountEdit(generic.edit.UpdateView):
+    model = Account
+    success_url = reverse_lazy('finper:mov_sheet')
+    titulo = 'cuenta existente'
+    fields = ['codename', 'name']
+
+
 class AccountDelete(generic.edit.DeleteView):
     model = Account
     success_url = reverse_lazy('finper:mov_sheet')
@@ -241,9 +134,142 @@ class MovListView(generic.ListView):
         return Movement.objects.order_by('-date')
 
 
+class MovTableView(generic.ListView):
+    template_name = 'finper/mov_sheet.html'
+    object_list = Movement.objects.order_by('date', 'pk')
+
+    def get_queryset(self):
+        return Movement.objects.order_by('date', 'pk')
+
+    def get_context_data(self, *args, **kwargs):
+        arguments = super(MovTableView, self).get_context_data(*args, **kwargs)
+        arguments['title'] = 'Finanzas Personales - Planilla de movimientos'
+        arguments['movements_list'] = Movement.objects.order_by('date', 'pk')
+        arguments['accounts_list'] = Account.objects.order_by('name')
+        arguments['accounts_sum'] = Account.objects.aggregate(Sum('balance'))
+        arguments['accounts_start_sum'] = Account.objects.aggregate(Sum('balance_start'))
+        return arguments
+
+    def post(self, request, *args, **kwargs):
+        return MovMultipleDelete.as_view()(request, *args, **kwargs)
+
+
 class MovDetailView(generic.DetailView):
     """ Clase de vista de detalle de movimientos """
     model = Movement
     template_name = 'finper/mov_detail.html'
+
+
+class MovCreate(generic.edit.CreateView):
+    model = Movement
+    success_url = reverse_lazy('finper:mov_sheet')
+    fields = '__all__'
+
+    def post(self, request, *args, **kwargs):
+        try:
+            return super().post(request, *args, **kwargs)
+        except AccountError:
+            messages.add_message(request, messages.ERROR,
+                                 "Debe seleccionar al menos una cuenta de "
+                                 "entrada o una cuenta de salida"
+                                 )
+            return render(request,
+                          template_name=self.get_template_names(),
+                          context=self.get_context_data())
+
+
+class MovEdit(generic.edit.UpdateView):
+    model = Movement
+    success_url = reverse_lazy('finper:mov_sheet')
+    fields = '__all__'
+
+    def post(self, request, *args, **kwargs):
+        try:
+            return super().post(request, *args, **kwargs)
+        except AccountError:
+            messages.add_message(request, messages.ERROR,
+                                 "Debe seleccionar al menos una cuenta de "
+                                 "entrada o una cuenta de salida"
+                                 )
+            return render(request,
+                          template_name=self.get_template_names(),
+                          context=self.get_context_data())
+
+
+class MovDelete(generic.edit.DeleteView):
+    """
+    |_django.vies.generic.detail.SingleObjectTemplateResponseMixin
+    | |     - get_template_names()
+    | |_django.views.generic.base.TemplateResponseMixin
+    |
+    |_django.views.generic.base.TemplateResponseMixin
+    |       - template_name: str
+    |       - template_engine: str
+    |       - response_class: TemplateResponse
+    |       - content_type: str
+    |       - render_to_response(context, **response_kwargs) -> self.TemplateResponse()
+    |       - get_template_names() -> list
+    |
+    |_django.views.generic.edit.BaseDeleteView
+    | |_django.views.generic.edit.DeletionMixin
+    | |_django.views.generic.detail.BaseDetailView
+    |
+    |_django.views.generic.edit.DeletionMixin
+    |       - success_url: str
+    |       - delete(request: HttpRequest, *args, **kwargs) -> HttpResponseRedirect()
+    |       - get_success_url() -> str
+    |
+    |_django.views.generic.detail.BaseDetailView
+    | |     - get(request: HttpRequest, *args. **kwargs) -> HttpResponse()
+    | |_django.views.generic.detail.SingleObjectMixin
+    | | |_django.views.generic.base.ContextMixin
+    | |_django.views.generic.base.View
+    |
+    |_django.views.generic.detail.SingleObjectMixin
+    | |     - model: Model
+    | |     - queryset: QuerySet
+    | |     - slug_field: str (default: 'slug')
+    | |     - slug_url_kwarg: str (default: 'slug')
+    | |     - pk_url_kwarg: str (default: 'pk')
+    | |     - context_object_name: str
+    | |     - query_pk_and_slug: bool (default: False)
+    | |     - get_object(queryset=None) -> object
+    | |     - get_queryset() -> QuerySet
+    | |     - get_context_object_name(obj: object) -> str
+    | |     - get_context_data(**kwargs) -> dict
+    | |         {'object': self.object, 'context_object_name': get_context_object_name(), kwargs}
+    | |     - get_slug_field: str (default: self.slug_field
+    | |_django.views.generic.base.ContextMixin
+    |       - extra_context: dict (default: None)
+    |       - get_context_data(**kwargs) -> dict
+    |
+    |_django.views.generic.base.View
+        - http_method_names: list
+        - classmethod as_view(**initkwargs) -> view()
+        - setup(request: HttpRequest, *args, **kwargs)
+        - dispatch(request: HttpRequest, *args, **kwargs) -> HttpResponse()
+        - http_method_not_allowed(request: HttpRequest, *args, **kwargs)
+            -> HttpResponseNotAllowed()
+        - options(request: HttpRequest, *args, **kwargs) ->HttpResponse()
+    """
+    model = Movement
+    success_url = reverse_lazy('finper:mov_sheet')
+
+
+class MovMultipleDelete(generic.edit.DeleteView):
+    model = Movement
+    template_name = 'movement_multiple_confirm_delete.html'
+    success_url = reverse_lazy('finper:mov_sheet')
+    object = None
+    args = None
+    kwargs = None
+
+    def delete(self, request, *args, **kwargs):
+        para_borrar = request.POST.getlist("mult_delete")
+        success_url = self.success_url
+        for num in para_borrar:
+            Movement.objects.get(pk=num).delete()
+
+        return HttpResponseRedirect(success_url)
 
 

@@ -1,0 +1,10 @@
+{% extends 'base.html' %}
+{% block title %}{% endblock title %}
+
+{% block content %}
+<form method="post">{% csrf_token %}
+    ¿Está seguro que quiere borrar el movimiento "{{object}}"?
+    <input type="submit" value="Submit" />
+    <button onclick="window.history.back();" type="button">Cancel</button>
+</form>
+{% endblock content %}
