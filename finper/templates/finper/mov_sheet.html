@@ -3,7 +3,7 @@
 
 {% block content %}
     <h1>{{ title }}</h1>
-    {% if movements_list %}
+    {% if movement_list %}
 
       <h2>Modelo 1:</h2>
       <table border="1">
@@ -32,7 +32,7 @@
               <td></td>
           </tr>
           <form action="" id="seleccion" method="post">
-      {% for mov in movements_list %}
+      {% for mov in movement_list %}
           <tr>
               <td class="date">{{ mov.date }}</td>
               <td><a href="{% url 'finper:mod_mov' mov.id %}">{{ mov.title }}</a></td>
@@ -64,7 +64,7 @@
               </td>
               <td>{{ mov.category }}</td>
               <td><a href="{% url 'finper:del_mov' mov.id %}">x</a></td>
-              <td><input type="checkbox" name="{{ mov.name }}{{ mov.id }}" value="{{ mov.id }}"></td>
+              <td><input type="checkbox" name="mult_delete" value="{{ mov.id }}"></td>
           </tr>
       {% endfor %}
           <tr class="saldos">
@@ -78,7 +78,7 @@
                 </td>
               {% endfor %}
               <td class="number">{{ accounts_sum|floatformat:2 }}</td>
-              <td><input type="submit" value="borrar selecc."></td>
+              <td><button onclick="return confirm('¿Está seguro?');">borrar selecc.</button> </td>
           {% csrf_token %}
           </form>
           </tr>

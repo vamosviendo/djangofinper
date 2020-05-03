@@ -1,12 +1,13 @@
 from django.contrib import messages
 from django.db.models import Sum
-from django.http import HttpResponseRedirect, HttpResponse
-from django.shortcuts import render, redirect
+from django.http import HttpResponseRedirect
+from django.shortcuts import render
 from django.urls import reverse, reverse_lazy
 from django.views import generic
 
+from nandotools import debug
+
 from .errors import AccountError
-from .forms import MovementForm, MovementModelForm, AccountAddModelForm, AccountModModelForm
 from .models import Account, Movement
 
 
@@ -135,10 +136,13 @@ class MovListView(generic.ListView):
 
 class MovTableView(generic.ListView):
     template_name = 'finper/mov_sheet.html'
-    context_object_name = 'movements_table'
+    object_list = Movement.objects.order_by('date', 'pk')
+
+    def get_queryset(self):
+        return Movement.objects.order_by('date', 'pk')
 
     def get_context_data(self, *args, **kwargs):
-        arguments = super().get_context_data(*args, **kwargs)
+        arguments = super(MovTableView, self).get_context_data(*args, **kwargs)
         arguments['title'] = 'Finanzas Personales - Planilla de movimientos'
         arguments['movements_list'] = Movement.objects.order_by('date', 'pk')
         arguments['accounts_list'] = Account.objects.order_by('name')
@@ -146,8 +150,8 @@ class MovTableView(generic.ListView):
         arguments['accounts_start_sum'] = Account.objects.aggregate(Sum('balance_start'))
         return arguments
 
-    def get_queryset(self):
-        return Movement.objects.order_by('date', 'pk')
+    def post(self, request, *args, **kwargs):
+        return MovMultipleDelete.as_view()(request, *args, **kwargs)
 
 
 class MovDetailView(generic.DetailView):
@@ -193,5 +197,79 @@ class MovEdit(generic.edit.UpdateView):
 
 
 class MovDelete(generic.edit.DeleteView):
+    """
+    |_django.vies.generic.detail.SingleObjectTemplateResponseMixin
+    | |     - get_template_names()
+    | |_django.views.generic.base.TemplateResponseMixin
+    |
+    |_django.views.generic.base.TemplateResponseMixin
+    |       - template_name: str
+    |       - template_engine: str
+    |       - response_class: TemplateResponse
+    |       - content_type: str
+    |       - render_to_response(context, **response_kwargs) -> self.TemplateResponse()
+    |       - get_template_names() -> list
+    |
+    |_django.views.generic.edit.BaseDeleteView
+    | |_django.views.generic.edit.DeletionMixin
+    | |_django.views.generic.detail.BaseDetailView
+    |
+    |_django.views.generic.edit.DeletionMixin
+    |       - success_url: str
+    |       - delete(request: HttpRequest, *args, **kwargs) -> HttpResponseRedirect()
+    |       - get_success_url() -> str
+    |
+    |_django.views.generic.detail.BaseDetailView
+    | |     - get(request: HttpRequest, *args. **kwargs) -> HttpResponse()
+    | |_django.views.generic.detail.SingleObjectMixin
+    | | |_django.views.generic.base.ContextMixin
+    | |_django.views.generic.base.View
+    |
+    |_django.views.generic.detail.SingleObjectMixin
+    | |     - model: Model
+    | |     - queryset: QuerySet
+    | |     - slug_field: str (default: 'slug')
+    | |     - slug_url_kwarg: str (default: 'slug')
+    | |     - pk_url_kwarg: str (default: 'pk')
+    | |     - context_object_name: str
+    | |     - query_pk_and_slug: bool (default: False)
+    | |     - get_object(queryset=None) -> object
+    | |     - get_queryset() -> QuerySet
+    | |     - get_context_object_name(obj: object) -> str
+    | |     - get_context_data(**kwargs) -> dict
+    | |         {'object': self.object, 'context_object_name': get_context_object_name(), kwargs}
+    | |     - get_slug_field: str (default: self.slug_field
+    | |_django.views.generic.base.ContextMixin
+    |       - extra_context: dict (default: None)
+    |       - get_context_data(**kwargs) -> dict
+    |
+    |_django.views.generic.base.View
+        - http_method_names: list
+        - classmethod as_view(**initkwargs) -> view()
+        - setup(request: HttpRequest, *args, **kwargs)
+        - dispatch(request: HttpRequest, *args, **kwargs) -> HttpResponse()
+        - http_method_not_allowed(request: HttpRequest, *args, **kwargs)
+            -> HttpResponseNotAllowed()
+        - options(request: HttpRequest, *args, **kwargs) ->HttpResponse()
+    """
     model = Movement
     success_url = reverse_lazy('finper:mov_sheet')
+
+
+class MovMultipleDelete(generic.edit.DeleteView):
+    model = Movement
+    template_name = 'movement_multiple_confirm_delete.html'
+    success_url = reverse_lazy('finper:mov_sheet')
+    object = None
+    args = None
+    kwargs = None
+
+    def delete(self, request, *args, **kwargs):
+        para_borrar = request.POST.getlist("mult_delete")
+        success_url = self.success_url
+        for num in para_borrar:
+            Movement.objects.get(pk=num).delete()
+
+        return HttpResponseRedirect(success_url)
+
+

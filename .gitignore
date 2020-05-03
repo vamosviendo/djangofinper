@@ -1,6 +1,7 @@
 .project
 .pydevproject
-.idea/dictionaries/*
+.idea
+.idea/dictionaries
 db.sqlite3
 *pycache*
 finper/migrations/*

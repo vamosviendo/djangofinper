@@ -6,6 +6,7 @@ from model_utils import FieldTracker
 
 from .errors import AccountError
 
+
 def valueorzero(param):
     if type(param) == type(None):
         return 0;
